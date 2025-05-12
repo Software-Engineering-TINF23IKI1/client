@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:bbc_client/tcp/tcp_client.dart';
 
 // 1. Define a simple data model for one leaderboard entry.
 //    You can replace this with your real model from AppContext.
@@ -77,7 +78,9 @@ class GameScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 40),
                         ElevatedButton(
-                          onPressed: () {/* … */},
+                          onPressed: () {
+                            startGame();
+                          },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 40,

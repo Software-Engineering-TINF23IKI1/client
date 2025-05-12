@@ -1,8 +1,14 @@
-import 'package:bbc_client/screens/lobby_screen.dart';
+import 'package:bbc_client/screens/game_screen.dart';
+import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
 
 void main() {
+  init();
   runApp(const MainApp());
+}
+
+void init() async {
+  await createConnection();
 }
 
 class MainApp extends StatelessWidget {
@@ -11,7 +17,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
-      home: LobbyScreen(),
+      home: GameScreen(),
     );
   }
 }
