@@ -79,7 +79,7 @@ class GameScreen extends StatelessWidget {
                         const SizedBox(height: 40),
                         ElevatedButton(
                           onPressed: () {
-                            startGame();
+                            //startGame();
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(

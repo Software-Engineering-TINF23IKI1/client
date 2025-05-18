@@ -2,13 +2,11 @@ import 'package:bbc_client/screens/game_screen.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  init();
+void main() async {
+  TCPClient client = TCPClient('127.0.0.1', 65432);
+  await client.createConnection();
+  client.startGame();
   runApp(const MainApp());
-}
-
-void init() async {
-  await createConnection();
 }
 
 class MainApp extends StatelessWidget {
