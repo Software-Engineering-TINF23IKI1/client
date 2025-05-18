@@ -1,31 +1,10 @@
 import 'package:bbc_client/color_palette.dart';
+import 'package:bbc_client/widgets/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 
 class TitleScreen extends StatelessWidget {
-  TitleScreen({super.key});
-
-  static final textFieldDecoration = InputDecoration(
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: ColorPalette.yellow1, width: 2)),
-      enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: ColorPalette.yellow1, width: 2)),
-      focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: ColorPalette.yellow1, width: 2)),
-      labelStyle: TextStyle(color: Colors.white),
-      fillColor: Colors.black45,
-      filled: true,
-      contentPadding: EdgeInsets.fromLTRB(24, 16, 24, 16));
-
-  static final buttonStyle = ElevatedButton.styleFrom(
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-    side: const BorderSide(width: 3, color: ColorPalette.dark),
-    backgroundColor: ColorPalette.blue1,
-    padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-  );
+  const TitleScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -71,7 +50,7 @@ class TitleScreen extends StatelessWidget {
                       children: [
                         SizedBox(
                           child: TextField(
-                            decoration: textFieldDecoration.copyWith(
+                            decoration: titlePageTextFieldDecoration.copyWith(
                                 labelText: "Enter Player Name"),
                             style: TextStyle(color: Colors.white, fontSize: 20),
                           ),
@@ -84,32 +63,34 @@ class TitleScreen extends StatelessWidget {
                               SizedBox(
                                 width: 170,
                                 child: TextField(
-                                  decoration: textFieldDecoration.copyWith(
-                                      labelText: "Game Code",
-                                      hintText: "XXXXXX",
-                                      prefixIconConstraints:
-                                          BoxConstraints(minWidth: 10),
-                                      prefixIcon: Text("   #  ",
-                                          style: TextStyle(
-                                              color: Colors.white70,
-                                              fontSize: 20)),
-                                      floatingLabelBehavior:
-                                          FloatingLabelBehavior.always,
-                                      labelStyle: textFieldDecoration.labelStyle
-                                          ?.copyWith(fontSize: 18),
-                                      hintStyle:
-                                          TextStyle(color: Colors.white70)),
+                                  decoration:
+                                      titlePageTextFieldDecoration
+                                          .copyWith(
+                                              labelText: "Game Code",
+                                              hintText: "XXXXXX",
+                                              prefixIconConstraints:
+                                                  BoxConstraints(minWidth: 10),
+                                              prefixIcon: Text("   #  ",
+                                                  style: TextStyle(
+                                                      color: Colors.white70,
+                                                      fontSize: 20)),
+                                              floatingLabelBehavior:
+                                                  FloatingLabelBehavior.always,
+                                              labelStyle:
+                                                  titlePageTextFieldDecoration
+                                                      .labelStyle
+                                                      ?.copyWith(fontSize: 18),
+                                              hintStyle: TextStyle(
+                                                  color: Colors.white70)),
                                   style: TextStyle(
                                       color: Colors.white, fontSize: 20),
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {}, // later: mark ready
-                                style: buttonStyle,
+                                onPressed: () {},
+                                style: titleScreenButtonStyle,
                                 child: const Text(
                                   'Join Game',
-                                  style: TextStyle(
-                                      fontSize: 30, color: Colors.black87),
                                 ),
                               ),
                             ],
@@ -151,12 +132,10 @@ class TitleScreen extends StatelessWidget {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {}, // later: mark ready
-                            style: buttonStyle,
+                            onPressed: () {},
+                            style: titleScreenButtonStyle,
                             child: const Text(
                               'Create Game',
-                              style: TextStyle(
-                                  fontSize: 30, color: Colors.black87),
                             ),
                           ),
                         ),
