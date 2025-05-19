@@ -51,8 +51,40 @@ class TitleScreen extends StatelessWidget {
                         SizedBox(
                           child: TextField(
                             decoration: titlePageTextFieldDecoration.copyWith(
-                                labelText: "Enter Player Name"),
+                                labelText: "Server Address",
+                                isDense: true,
+                                border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                        color: ColorPalette.yellow1
+                                            .withOpacity(0.6),
+                                        width: 2)),
+                                enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                        color: ColorPalette.yellow1
+                                            .withOpacity(0.6),
+                                        width: 2)),
+                                focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                        color: ColorPalette.yellow1
+                                            .withOpacity(1.0),
+                                        width: 2)),
+                                contentPadding: EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 24)),
+                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                        Spacer(),
+                        SizedBox(
+                          child: TextField(
+                            decoration: titlePageTextFieldDecoration.copyWith(
+                              labelText: "Enter Player Name",
+                            ),
                             style: TextStyle(color: Colors.white, fontSize: 20),
+                            textAlign: TextAlign.center,
                           ),
                         ),
                         const SizedBox(height: 70),
@@ -139,6 +171,7 @@ class TitleScreen extends StatelessWidget {
                             ),
                           ),
                         ),
+                        Spacer()
                       ],
                     ),
                   ),

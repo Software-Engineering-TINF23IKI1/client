@@ -12,13 +12,16 @@ final titleScreenButtonStyle = ElevatedButton.styleFrom(
 final titlePageTextFieldDecoration = InputDecoration(
     border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: ColorPalette.yellow1, width: 2)),
+        borderSide:
+            BorderSide(color: ColorPalette.yellow1.withOpacity(0.9), width: 2)),
     enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: ColorPalette.yellow1, width: 2)),
+        borderSide:
+            BorderSide(color: ColorPalette.yellow1.withOpacity(0.9), width: 2)),
     focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: BorderSide(color: ColorPalette.yellow1, width: 2)),
+        borderSide:
+            BorderSide(color: ColorPalette.yellow1.withOpacity(1.0), width: 2)),
     labelStyle: TextStyle(color: Colors.white),
     fillColor: Colors.black45,
     filled: true,
