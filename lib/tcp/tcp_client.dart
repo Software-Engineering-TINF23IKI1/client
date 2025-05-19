@@ -53,8 +53,8 @@ class TCPClient {
     print("Game started with name: michi");
   }
 
-  void connectToGame(String gameCode) async {
-    var packet = ConnectToGamePacket(gameCode);
+  void connectToGame(String gameCode, playerName) async {
+    var packet = ConnectToGamePacket(gameCode, playerName);
     socket?.add(packet.createPacket());
     print("Joined game with code: $gameCode");
   }
