@@ -54,18 +54,18 @@ class TCPClient extends ChangeNotifier {
   void startGame({String playerName = "michi"}) async {
     var packet = StartGamePacket(playerName);
     socket?.add(packet.createPacket());
-    print("Game started with name: michi");
+    print("Starting game with name: $playerName");
   }
 
   void connectToGame(String gameCode, playerName) async {
     var packet = ConnectToGamePacket(gameCode, playerName);
     socket?.add(packet.createPacket());
-    print("Joined game with code: $gameCode");
+    print("Joining game with code: $gameCode");
   }
 
   void updatePlayStatus(bool isReady) async {
     var packet = StatusUpdatePacket(isReady);
     socket?.add(packet.createPacket());
-    print("Updated play status to: $isReady");
+    print("Updating play status to: $isReady");
   }
 }

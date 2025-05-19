@@ -70,6 +70,7 @@ class _TitleScreenState extends State<TitleScreen> {
                       children: [
                         SizedBox(
                           child: TextField(
+                            controller: serverAdressController,
                             decoration: titlePageTextFieldDecoration.copyWith(
                                 labelText: "Server Address",
                                 isDense: true,
@@ -100,6 +101,7 @@ class _TitleScreenState extends State<TitleScreen> {
                         Spacer(),
                         SizedBox(
                           child: TextField(
+                            controller: playerNameController,
                             decoration: titlePageTextFieldDecoration.copyWith(
                               labelText: "Enter Player Name",
                             ),
@@ -115,6 +117,7 @@ class _TitleScreenState extends State<TitleScreen> {
                               SizedBox(
                                 width: 170,
                                 child: TextField(
+                                  controller: gameCodeController,
                                   decoration:
                                       titlePageTextFieldDecoration
                                           .copyWith(
@@ -139,7 +142,7 @@ class _TitleScreenState extends State<TitleScreen> {
                                 ),
                               ),
                               ElevatedButton(
-                                onPressed: () {},
+                                onPressed: () => handleJoinGameButton(context),
                                 style: titleScreenButtonStyle,
                                 child: const Text(
                                   'Join Game',
@@ -184,7 +187,7 @@ class _TitleScreenState extends State<TitleScreen> {
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () => handleCreateGameButton(context),
                             style: titleScreenButtonStyle,
                             child: const Text(
                               'Create Game',
@@ -208,16 +211,55 @@ class _TitleScreenState extends State<TitleScreen> {
     final TCPClient tcpClient = Provider.of<TCPClient>(context, listen: false);
     var (ipAddress, port) = seperateIpAndPort(serverAdressController.text);
 
+    print("Connecting to server: $ipAddress:$port");
+
     if (tcpClient.socket == null) {
       tcpClient.createConnection(ipAddress, port).then((_) {
         tcpClient.connectToGame(
             gameCodeController.text, playerNameController.text);
-      }).onError(() => print("Error connecting to server: $ipAddress:$port"));
-    } else if (tcpClient.ipAddress == null) {
+      }).onError((Object error, StackTrace stackTrace) {
+        print("$error\n <Error connecting to server: $ipAddress:$port");
+        return null;
+      });
+    } else if (tcpClient.ipAddress == ipAddress && tcpClient.port == port) {
+      tcpClient.connectToGame(
+          gameCodeController.text, playerNameController.text);
+    } else {
       tcpClient.socket?.close();
-      tcpClient.createConnection();
+      tcpClient.createConnection(ipAddress, port).then((_) {
+        tcpClient.connectToGame(
+            gameCodeController.text, playerNameController.text);
+      }).onError((Object error, StackTrace stackTrace) {
+        print("$error\n <Error connecting to server: $ipAddress:$port");
+        return null;
+      });
     }
-    Provider.of<TCPClient>(context, listen: false)
-        .connectToGame("XXXXXX", "PlayerName");
+  }
+
+  void handleCreateGameButton(BuildContext context) {
+    final TCPClient tcpClient = Provider.of<TCPClient>(context, listen: false);
+    var (ipAddress, port) = seperateIpAndPort(serverAdressController.text);
+
+    print("Connecting to server: $ipAddress:$port");
+
+    if (tcpClient.ipAddress == ipAddress && tcpClient.port == port) {
+      tcpClient.startGame(playerName: playerNameController.text);
+    } else {
+      tcpClient.socket?.close();
+      tcpClient.createConnection(ipAddress, port).then((_) {
+        tcpClient.startGame(playerName: playerNameController.text);
+      }).onError((Object error, StackTrace stackTrace) {
+        print("$error\n <Error connecting to server: $ipAddress:$port");
+        return null;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    serverAdressController.dispose();
+    playerNameController.dispose();
+    gameCodeController.dispose();
+    super.dispose();
   }
 }
