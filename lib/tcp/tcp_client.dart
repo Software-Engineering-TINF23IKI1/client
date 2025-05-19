@@ -1,16 +1,20 @@
 import 'dart:io';
 import 'dart:convert';
 import "package:bbc_client/tcp/packets.dart";
+import 'package:flutter/material.dart';
 
-class TCPClient {
-  String ipAddress;
-  int port;
+class TCPClient extends ChangeNotifier {
+  String? ipAddress;
+  int? port;
   Socket? socket;
 
-  TCPClient(this.ipAddress, this.port);
-
-  Future<void> createConnection() async {
-    socket = await Socket.connect(ipAddress, port);
+  Future<void> createConnection([String? ipAddress, int? port]) async {
+    this.ipAddress = ipAddress;
+    this.port = port;
+    if (ipAddress == null || port == null) {
+      throw Exception("IP address and port must be set before connecting.");
+    }
+    socket = await Socket.connect(this.ipAddress, port);
 
     socket?.listen(
       (List<int> data) {

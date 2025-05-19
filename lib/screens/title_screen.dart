@@ -1,10 +1,30 @@
 import 'package:bbc_client/color_palette.dart';
+import 'package:bbc_client/constants.dart';
+import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:bbc_client/widgets/styles.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 
-class TitleScreen extends StatelessWidget {
+class TitleScreen extends StatefulWidget {
   const TitleScreen({super.key});
+
+  @override
+  State<TitleScreen> createState() => _TitleScreenState();
+}
+
+class _TitleScreenState extends State<TitleScreen> {
+  final serverAdressController = TextEditingController();
+  final playerNameController = TextEditingController();
+  final gameCodeController = TextEditingController();
+
+  (String, int) seperateIpAndPort(String ipAddress) {
+    final parts = ipAddress.split(':');
+    if (parts.length == 2) {
+      return (parts[0], int.parse(parts[1]));
+    } else {
+      return (ipAddress, defaultPort);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -182,5 +202,22 @@ class TitleScreen extends StatelessWidget {
         ))
       ],
     ));
+  }
+
+  void handleJoinGameButton(BuildContext context) {
+    final TCPClient tcpClient = Provider.of<TCPClient>(context, listen: false);
+    var (ipAddress, port) = seperateIpAndPort(serverAdressController.text);
+
+    if (tcpClient.socket == null) {
+      tcpClient.createConnection(ipAddress, port).then((_) {
+        tcpClient.connectToGame(
+            gameCodeController.text, playerNameController.text);
+      }).onError(() => print("Error connecting to server: $ipAddress:$port"));
+    } else if (tcpClient.ipAddress == null) {
+      tcpClient.socket?.close();
+      tcpClient.createConnection();
+    }
+    Provider.of<TCPClient>(context, listen: false)
+        .connectToGame("XXXXXX", "PlayerName");
   }
 }
