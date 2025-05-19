@@ -48,7 +48,7 @@ class TCPClient {
   }
 
   void startGame({String playerName = "michi"}) async {
-    var packet = StartGamePacket('michi');
+    var packet = StartGamePacket(playerName);
     socket?.add(packet.createPacket());
     print("Game started with name: michi");
   }
