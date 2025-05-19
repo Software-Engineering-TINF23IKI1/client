@@ -47,10 +47,21 @@ class TCPClient {
     }
   }
 
-  void startGame() async {
+  void startGame({String playerName = "michi"}) async {
     var packet = StartGamePacket('michi');
     socket?.add(packet.createPacket());
-    print("Game started!");
-    print(packet.getPlayerName());
+    print("Game started with name: michi");
+  }
+
+  void connectToGame(String gameCode) async {
+    var packet = ConnectToGamePacket(gameCode);
+    socket?.add(packet.createPacket());
+    print("Joined game with code: $gameCode");
+  }
+
+  void updatePlayStatus(bool isReady) async {
+    var packet = StatusUpdatePacket(isReady);
+    socket?.add(packet.createPacket());
+    print("Updated play status to: $isReady");
   }
 }
