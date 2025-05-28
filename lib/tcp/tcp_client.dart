@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
 import "package:bbc_client/tcp/packets.dart";
@@ -7,6 +8,9 @@ class TCPClient extends ChangeNotifier {
   String? ipAddress;
   int? port;
   Socket? socket;
+
+  final _packetController = StreamController<dynamic>.broadcast();
+  Stream<dynamic> get packetStream => _packetController.stream;
 
   Future<void> createConnection([String? ipAddress, int? port]) async {
     this.ipAddress = ipAddress;
@@ -18,7 +22,9 @@ class TCPClient extends ChangeNotifier {
 
     socket?.listen(
       (List<int> data) {
-        createPacketFromResponse(data).printPacket();
+        final packet = createPacketFromResponse(data);
+        packet?.printPacket();
+        _packetController.add(packet);
       },
       onDone: () {
         print("Connection closed");
@@ -31,7 +37,7 @@ class TCPClient extends ChangeNotifier {
   }
 
   dynamic createPacketFromResponse(List<int> data) {
-    String response = utf8.decode(data).replaceAll('\x1e', '');
+    String response = utf8.decode(data).split('\x1e').first;
     var jsonResponse = jsonDecode(response);
     var jsonBody = jsonResponse['body'];
 
@@ -67,5 +73,12 @@ class TCPClient extends ChangeNotifier {
     var packet = StatusUpdatePacket(isReady);
     socket?.add(packet.createPacket());
     print("Updating play status to: $isReady");
+  }
+
+  @override
+  void dispose() {
+    socket?.close();
+    _packetController.close();
+    super.dispose();
   }
 }

@@ -1,5 +1,9 @@
+import 'dart:async';
+
 import 'package:bbc_client/color_palette.dart';
 import 'package:bbc_client/constants.dart';
+import 'package:bbc_client/screens/lobby_screen.dart';
+import 'package:bbc_client/tcp/packets.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:bbc_client/widgets/styles.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +21,8 @@ class _TitleScreenState extends State<TitleScreen> {
   final playerNameController = TextEditingController();
   final gameCodeController = TextEditingController();
 
+  late StreamSubscription _packetSubscription;
+
   (String, int) seperateIpAndPort(String ipAddress) {
     final parts = ipAddress.split(':');
     if (parts.length == 2) {
@@ -24,6 +30,24 @@ class _TitleScreenState extends State<TitleScreen> {
     } else {
       return (ipAddress, defaultPort);
     }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    final client = context.read<TCPClient>();
+    _packetSubscription = client.packetStream.listen((packet) {
+      if (packet is LobbyStatusPacket) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => LobbyScreen(
+              gamecode: packet.gamecode,
+              players: packet.players,
+            ),
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -260,6 +284,7 @@ class _TitleScreenState extends State<TitleScreen> {
     serverAdressController.dispose();
     playerNameController.dispose();
     gameCodeController.dispose();
+    _packetSubscription.cancel();
     super.dispose();
   }
 }
