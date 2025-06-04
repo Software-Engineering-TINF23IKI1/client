@@ -37,6 +37,7 @@ class TCPClient extends ChangeNotifier {
   }
 
   dynamic createPacketFromResponse(List<int> data) {
+
     String response = utf8.decode(data).split('\x1e').first;
     var jsonResponse = jsonDecode(response);
     var jsonBody = jsonResponse['body'];
@@ -72,6 +73,7 @@ class TCPClient extends ChangeNotifier {
   void updatePlayStatus(bool isReady) async {
     var packet = StatusUpdatePacket(isReady);
     socket?.add(packet.createPacket());
+    print("Updated play status to: $isReady");
     print("Updating play status to: $isReady");
   }
 

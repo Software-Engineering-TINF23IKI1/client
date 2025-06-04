@@ -78,6 +78,56 @@ class ExceptionPacket extends PacketLayout {
   }
 }
 
+
+class PackageParsingExceptionPacket extends ExceptionPacket {
+  String stage;
+  String rawMsg;
+  PackageParsingExceptionPacket(this.stage, this.rawMsg)
+      : super('PackageParsingException', {'stage': stage, 'raw_msg': rawMsg});
+
+  String getStage() {
+    return stage;
+  }
+
+  String getRawMsg() {
+    return rawMsg;
+  }
+}
+
+class InvalidGameCodeExceptionPacket extends ExceptionPacket {
+  String code;
+  InvalidGameCodeExceptionPacket(this.code)
+      : super('InvalidGameCodeExceptionPackage', {'code': code});
+
+  String getCode() {
+    return code;
+  }
+}
+
+class InvalidShopTransactionPacket extends ExceptionPacket {
+  String stage;
+  String upgradeName;
+  String upgradeTier;
+  InvalidShopTransactionPacket(this.stage, this.upgradeName, this.upgradeTier)
+      : super('PackageParsingException', {
+          'stage': stage,
+          'upgrade_name': upgradeName,
+          'upgrade_tier': upgradeTier
+        });
+
+  String getStage() {
+    return stage;
+  }
+
+  String getUpgradeName() {
+    return upgradeName;
+  }
+
+  String getUpgradeTier() {
+    return upgradeTier;
+  }
+}
+
 class LobbyStatusPacket extends PacketLayout {
   String gamecode;
   List<JsonObject> players;
@@ -99,6 +149,18 @@ class GameStartPacket extends PacketLayout {
 class GameUpdatePacket extends PacketLayout {
   double currency;
   double score;
+  double clickModifier;
+  double passiveGain;
+  List<JsonObject> topPlayers;
+  GameUpdatePacket(this.currency, this.score, this.clickModifier,
+      this.passiveGain, this.topPlayers)
+      : super('game-update', {
+          'currency': currency,
+          'score': score,
+          'click-modifier': clickModifier,
+          'passive-gain': passiveGain,
+          'top-players': topPlayers
+        });
   List<JsonObject> topPlayers;
   GameUpdatePacket(this.currency, this.score, this.topPlayers)
       : super('game-update',
@@ -109,6 +171,14 @@ class GameUpdatePacket extends PacketLayout {
 
   double getScore() {
     return score;
+  }
+
+  double getClickModifier() {
+    return clickModifier;
+  }
+
+  double getPassiveGain() {
+    return passiveGain;
   }
 
   List<JsonObject> getTopPlayers() {
@@ -133,5 +203,44 @@ class EndRoutinePacket extends PacketLayout {
 
   List<JsonObject> getScoreboard() {
     return scoreboard;
+  }
+}
+
+class ShopPurchaseRequestPacket extends PacketLayout {
+  String upgradeName;
+  int tier;
+  ShopPurchaseRequestPacket(this.upgradeName, this.tier)
+      : super('shop-purchase-request',
+            {'upgrade-name': upgradeName, 'tier': tier});
+  String getUpgradeName() {
+    return upgradeName;
+  }
+
+  int getTier() {
+    return tier;
+  }
+}
+
+class ShopBroadcastPacket extends PacketLayout {
+  List<JsonObject> shopEntries;
+  ShopBroadcastPacket(this.shopEntries)
+      : super('shop-broadcast', {'shop_entries': shopEntries});
+
+  List<JsonObject> getShopEntries() {
+    return shopEntries;
+  }
+}
+
+class ShopPurchaseConfirmationPacket extends PacketLayout {
+  String name;
+  int tier;
+  ShopPurchaseConfirmationPacket(this.name, this.tier)
+      : super('shop-purchase-confirmation', {'name': name, 'tier': tier});
+  String getName() {
+    return name;
+  }
+
+  int getTier() {
+    return tier;
   }
 }
