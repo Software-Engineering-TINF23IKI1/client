@@ -1,3 +1,4 @@
+import 'package:bbc_client/tcp/packets.dart';
 import 'package:flutter/material.dart';
 
 // 1. Model for one slot
@@ -55,14 +56,24 @@ class PlayerSlotWidget extends StatelessWidget {
 
 // 3. The LobbyScreen
 class LobbyScreen extends StatelessWidget {
-  const LobbyScreen({Key? key}) : super(key: key);
+  final String gamecode;
+  final List<JsonObject> players;
+
+  const LobbyScreen({
+    Key? key,
+    required this.gamecode,
+    required this.players,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // dummy data
-    final slots = List.generate(9, (i) {
-      return PlayerSlot(name: 'Player ${i + 1}', isReady: i % 2 == 0);
-    });
+    final List<PlayerSlot> slots = players
+        .map((player) => PlayerSlot(
+              name: player['playername'] as String,
+              isReady: player['is-ready'] as bool,
+            ))
+        .toList();
 
     return Scaffold(
       body: SafeArea(
@@ -71,9 +82,10 @@ class LobbyScreen extends StatelessWidget {
           child: Column(
             children: [
               // Header
-              const Text(
-                'Lobby Code: 1234',
-                style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+              Text(
+                'Lobby Code: $gamecode',
+                style:
+                    const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 24),
@@ -115,4 +127,6 @@ class LobbyScreen extends StatelessWidget {
       ),
     );
   }
+
+  handleReadyClick() {}
 }

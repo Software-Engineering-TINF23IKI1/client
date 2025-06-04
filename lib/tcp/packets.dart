@@ -78,6 +78,7 @@ class ExceptionPacket extends PacketLayout {
   }
 }
 
+
 class PackageParsingExceptionPacket extends ExceptionPacket {
   String stage;
   String rawMsg;
@@ -160,6 +161,10 @@ class GameUpdatePacket extends PacketLayout {
           'passive-gain': passiveGain,
           'top-players': topPlayers
         });
+  List<JsonObject> topPlayers;
+  GameUpdatePacket(this.currency, this.score, this.topPlayers)
+      : super('game-update',
+            {'currency': currency, 'score': score, 'top-players': topPlayers});
   double getCurrency() {
     return currency;
   }
