@@ -81,7 +81,11 @@ class TCPClient extends ChangeNotifier {
         return GameStartPacket();
       case "game-update":
         return GameUpdatePacket(
-            jsonBody['currency'], jsonBody['score'], jsonBody['top-players']);
+            jsonBody['currency'].toDouble(),
+            jsonBody['score'].toDouble(),
+            jsonBody['click-modifier'].toDouble(),
+            jsonBody['passive-gain'].toDouble(),
+            jsonBody['top-players']);
       case "end-routine":
         return EndRoutinePacket(
             jsonBody['score'], jsonBody['is-winner'], jsonBody['scoreboard']);
