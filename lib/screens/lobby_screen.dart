@@ -67,6 +67,23 @@ class LobbyScreen extends StatelessWidget {
     // dummy data
 
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 12, bottom: 12), // breathing room
+        child: ElevatedButton(
+          onPressed: () {
+            context.read<TCPClient>().closeConnection().then((_) {
+              Navigator.of(context).pop();
+            });
+          }, // exit lobby
+          style: ElevatedButton.styleFrom(
+            side: const BorderSide(width: 2, color: Colors.red),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+          ),
+          child: const Text('Exit Lobby',
+              style: TextStyle(fontSize: 20, color: Colors.black87)),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 70),

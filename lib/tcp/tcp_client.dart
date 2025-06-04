@@ -35,13 +35,19 @@ class TCPClient extends ChangeNotifier {
         }
       },
       onDone: () {
-        print("Connection closed");
-        socket?.close();
+        closeConnection();
       },
       onError: (error) {
-        socket?.close();
+        closeConnection();
       },
     );
+  }
+
+  Future<void> closeConnection() async {
+    if (socket == null) return;
+    socket?.destroy();
+    await socket?.close();
+    socket = null;
   }
 
   void handlePacket(PacketLayout packet) {
