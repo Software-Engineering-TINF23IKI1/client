@@ -9,6 +9,11 @@ class TCPClient extends ChangeNotifier {
   int? port;
   Socket? socket;
 
+  String? playerName;
+  bool isReady = false;
+  String gamecode = "";
+  List<JsonObject> players = List.empty();
+
   final _packetController = StreamController<dynamic>.broadcast();
   Stream<dynamic> get packetStream => _packetController.stream;
 
@@ -23,8 +28,11 @@ class TCPClient extends ChangeNotifier {
     socket?.listen(
       (List<int> data) {
         final packet = createPacketFromResponse(data);
-        packet?.printPacket();
-        _packetController.add(packet);
+        //packet?.printPacket();
+        if (packet != null) {
+          handlePacket(packet);
+          _packetController.add(packet);
+        }
       },
       onDone: () {
         print("Connection closed");
@@ -36,7 +44,24 @@ class TCPClient extends ChangeNotifier {
     );
   }
 
-  dynamic createPacketFromResponse(List<int> data) {
+  void handlePacket(PacketLayout packet) {
+    switch (packet) {
+      case LobbyStatusPacket():
+        gamecode = packet.gamecode;
+        players = packet.players;
+
+        // update own ready status
+        for (JsonObject player in players) {
+          if (player['playername'] == playerName) {
+            isReady = player['is-ready'];
+          }
+        }
+        break;
+    }
+    notifyListeners();
+  }
+
+  PacketLayout? createPacketFromResponse(List<int> data) {
     String response = utf8.decode(data).split('\x1e').first;
     var jsonResponse = jsonDecode(response);
     var jsonBody = jsonResponse['body'];
@@ -55,24 +80,32 @@ class TCPClient extends ChangeNotifier {
         return EndRoutinePacket(
             jsonBody['score'], jsonBody['is-winner'], jsonBody['scoreboard']);
     }
+    return null;
   }
 
   void startGame({String playerName = "michi"}) async {
     var packet = StartGamePacket(playerName);
     socket?.add(packet.createPacket());
+    this.playerName = playerName;
     print("Starting game with name: $playerName");
   }
 
   void connectToGame(String gameCode, playerName) async {
     var packet = ConnectToGamePacket(gameCode, playerName);
     socket?.add(packet.createPacket());
+    this.playerName = playerName;
     print("Joining game with code: $gameCode");
+  }
+
+  void togglePlayStatus() {
+    this.updatePlayStatus(!isReady);
   }
 
   void updatePlayStatus(bool isReady) async {
     var packet = StatusUpdatePacket(isReady);
     socket?.add(packet.createPacket());
     print("Updating play status to: $isReady");
+    notifyListeners();
   }
 
   @override

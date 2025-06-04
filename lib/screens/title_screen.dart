@@ -38,14 +38,12 @@ class _TitleScreenState extends State<TitleScreen> {
     final client = context.read<TCPClient>();
     _packetSubscription = client.packetStream.listen((packet) {
       if (packet is LobbyStatusPacket) {
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
-            builder: (context) => LobbyScreen(
-              gamecode: packet.gamecode,
-              players: packet.players,
-            ),
+            builder: (context) => LobbyScreen(),
           ),
         );
+        _packetSubscription.cancel();
       }
     });
   }
