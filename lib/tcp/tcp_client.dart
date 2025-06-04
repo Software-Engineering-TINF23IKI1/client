@@ -44,6 +44,7 @@ class TCPClient {
       case "end-routine":
         return EndRoutinePacket(
             jsonBody['score'], jsonBody['is-winner'], jsonBody['scoreboard']);
+      // TODO: add new packets
     }
   }
 

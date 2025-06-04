@@ -148,16 +148,32 @@ class GameStartPacket extends PacketLayout {
 class GameUpdatePacket extends PacketLayout {
   double currency;
   double score;
+  double clickModifier;
+  double passiveGain;
   List<JsonObject> topPlayers;
-  GameUpdatePacket(this.currency, this.score, this.topPlayers)
-      : super('game-update',
-            {'currency': currency, 'score': score, 'top-players': topPlayers});
+  GameUpdatePacket(this.currency, this.score, this.clickModifier,
+      this.passiveGain, this.topPlayers)
+      : super('game-update', {
+          'currency': currency,
+          'score': score,
+          'click-modifier': clickModifier,
+          'passive-gain': passiveGain,
+          'top-players': topPlayers
+        });
   double getCurrency() {
     return currency;
   }
 
   double getScore() {
     return score;
+  }
+
+  double getClickModifier() {
+    return clickModifier;
+  }
+
+  double getPassiveGain() {
+    return passiveGain;
   }
 
   List<JsonObject> getTopPlayers() {
