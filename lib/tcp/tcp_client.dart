@@ -110,6 +110,7 @@ class TCPClient extends ChangeNotifier {
   void updatePlayStatus(bool isReady) async {
     var packet = StatusUpdatePacket(isReady);
     socket?.add(packet.createPacket());
+    print("Updated play status to: $isReady");
     print("Updating play status to: $isReady");
     notifyListeners();
   }
