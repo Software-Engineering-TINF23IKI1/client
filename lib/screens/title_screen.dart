@@ -8,6 +8,7 @@ import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:bbc_client/widgets/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bbc_client/screens/route_observer.dart';
 
 class TitleScreen extends StatefulWidget {
   const TitleScreen({super.key});
@@ -16,7 +17,7 @@ class TitleScreen extends StatefulWidget {
   State<TitleScreen> createState() => _TitleScreenState();
 }
 
-class _TitleScreenState extends State<TitleScreen> {
+class _TitleScreenState extends State<TitleScreen> with RouteAware {
   final serverAdressController = TextEditingController();
   final playerNameController = TextEditingController();
   final gameCodeController = TextEditingController();
@@ -35,17 +36,24 @@ class _TitleScreenState extends State<TitleScreen> {
   @override
   void initState() {
     super.initState();
+    attachPacketListener();
+  }
+
+  @override
+  void didPopNext() {
+    attachPacketListener();
+  }
+
+  void attachPacketListener() {
     final client = context.read<TCPClient>();
     _packetSubscription = client.packetStream.listen((packet) {
       if (packet is LobbyStatusPacket) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => LobbyScreen(
-              gamecode: packet.gamecode,
-              players: packet.players,
-            ),
+            builder: (context) => LobbyScreen(),
           ),
         );
+        _packetSubscription.cancel();
       }
     });
   }
@@ -237,7 +245,7 @@ class _TitleScreenState extends State<TitleScreen> {
 
     print("Connecting to server: $ipAddress:$port");
 
-    if (tcpClient.socket == null) {
+    tcpClient.closeConnection().then((_) {
       tcpClient.createConnection(ipAddress, port).then((_) {
         tcpClient.connectToGame(
             gameCodeController.text, playerNameController.text);
@@ -245,19 +253,7 @@ class _TitleScreenState extends State<TitleScreen> {
         print("$error\n <Error connecting to server: $ipAddress:$port");
         return null;
       });
-    } else if (tcpClient.ipAddress == ipAddress && tcpClient.port == port) {
-      tcpClient.connectToGame(
-          gameCodeController.text, playerNameController.text);
-    } else {
-      tcpClient.socket?.close();
-      tcpClient.createConnection(ipAddress, port).then((_) {
-        tcpClient.connectToGame(
-            gameCodeController.text, playerNameController.text);
-      }).onError((Object error, StackTrace stackTrace) {
-        print("$error\n <Error connecting to server: $ipAddress:$port");
-        return null;
-      });
-    }
+    });
   }
 
   void handleCreateGameButton(BuildContext context) {
@@ -266,21 +262,29 @@ class _TitleScreenState extends State<TitleScreen> {
 
     print("Connecting to server: $ipAddress:$port");
 
-    if (tcpClient.ipAddress == ipAddress && tcpClient.port == port) {
-      tcpClient.startGame(playerName: playerNameController.text);
-    } else {
-      tcpClient.socket?.close();
+    tcpClient.closeConnection().then((_) {
+      print("creating new connection in handle button");
       tcpClient.createConnection(ipAddress, port).then((_) {
         tcpClient.startGame(playerName: playerNameController.text);
       }).onError((Object error, StackTrace stackTrace) {
         print("$error\n <Error connecting to server: $ipAddress:$port");
         return null;
       });
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final ModalRoute? route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      routeObserver.subscribe(this, route);
     }
   }
 
   @override
   void dispose() {
+    routeObserver.unsubscribe(this);
     serverAdressController.dispose();
     playerNameController.dispose();
     gameCodeController.dispose();

@@ -9,6 +9,11 @@ class TCPClient extends ChangeNotifier {
   int? port;
   Socket? socket;
 
+  String? playerName;
+  bool isReady = false;
+  String gamecode = "";
+  List<JsonObject> players = List.empty();
+
   final _packetController = StreamController<dynamic>.broadcast();
   Stream<dynamic> get packetStream => _packetController.stream;
 
@@ -23,21 +28,46 @@ class TCPClient extends ChangeNotifier {
     socket?.listen(
       (List<int> data) {
         final packet = createPacketFromResponse(data);
-        packet?.printPacket();
-        _packetController.add(packet);
+        //packet?.printPacket();
+        if (packet != null) {
+          handlePacket(packet);
+          _packetController.add(packet);
+        }
       },
       onDone: () {
-        print("Connection closed");
-        socket?.close();
+        closeConnection();
       },
       onError: (error) {
-        socket?.close();
+        closeConnection();
       },
     );
   }
 
-  dynamic createPacketFromResponse(List<int> data) {
+  Future<void> closeConnection() async {
+    if (socket == null) return;
+    socket?.destroy();
+    await socket?.close();
+    socket = null;
+  }
 
+  void handlePacket(PacketLayout packet) {
+    switch (packet) {
+      case LobbyStatusPacket():
+        gamecode = packet.gamecode;
+        players = packet.players;
+
+        // update own ready status
+        for (JsonObject player in players) {
+          if (player['playername'] == playerName) {
+            isReady = player['is-ready'];
+          }
+        }
+        break;
+    }
+    notifyListeners();
+  }
+
+  PacketLayout? createPacketFromResponse(List<int> data) {
     String response = utf8.decode(data).split('\x1e').first;
     var jsonResponse = jsonDecode(response);
     var jsonBody = jsonResponse['body'];
@@ -51,23 +81,34 @@ class TCPClient extends ChangeNotifier {
         return GameStartPacket();
       case "game-update":
         return GameUpdatePacket(
-            jsonBody['currency'], jsonBody['score'], jsonBody['top-players']);
+            jsonBody['currency'].toDouble(),
+            jsonBody['score'].toDouble(),
+            jsonBody['click-modifier'].toDouble(),
+            jsonBody['passive-gain'].toDouble(),
+            jsonBody['top-players']);
       case "end-routine":
         return EndRoutinePacket(
             jsonBody['score'], jsonBody['is-winner'], jsonBody['scoreboard']);
     }
+    return null;
   }
 
   void startGame({String playerName = "michi"}) async {
     var packet = StartGamePacket(playerName);
     socket?.add(packet.createPacket());
+    this.playerName = playerName;
     print("Starting game with name: $playerName");
   }
 
   void connectToGame(String gameCode, playerName) async {
     var packet = ConnectToGamePacket(gameCode, playerName);
     socket?.add(packet.createPacket());
+    this.playerName = playerName;
     print("Joining game with code: $gameCode");
+  }
+
+  void togglePlayStatus() {
+    this.updatePlayStatus(!isReady);
   }
 
   void updatePlayStatus(bool isReady) async {
@@ -75,6 +116,7 @@ class TCPClient extends ChangeNotifier {
     socket?.add(packet.createPacket());
     print("Updated play status to: $isReady");
     print("Updating play status to: $isReady");
+    notifyListeners();
   }
 
   @override

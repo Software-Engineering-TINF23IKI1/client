@@ -1,5 +1,7 @@
 import 'package:bbc_client/tcp/packets.dart';
+import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 // 1. Model for one slot
 class PlayerSlot {
@@ -56,52 +58,74 @@ class PlayerSlotWidget extends StatelessWidget {
 
 // 3. The LobbyScreen
 class LobbyScreen extends StatelessWidget {
-  final String gamecode;
-  final List<JsonObject> players;
-
   const LobbyScreen({
     Key? key,
-    required this.gamecode,
-    required this.players,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     // dummy data
-    final List<PlayerSlot> slots = players
-        .map((player) => PlayerSlot(
-              name: player['playername'] as String,
-              isReady: player['is-ready'] as bool,
-            ))
-        .toList();
 
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(right: 12, bottom: 12), // breathing room
+        child: ElevatedButton(
+          onPressed: () {
+            context.read<TCPClient>().closeConnection().then((_) {
+              Navigator.of(context).pop();
+            });
+          }, // exit lobby
+          style: ElevatedButton.styleFrom(
+            side: const BorderSide(width: 2, color: Colors.red),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+          ),
+          child: const Text('Exit Lobby',
+              style: TextStyle(fontSize: 20, color: Colors.black87)),
+        ),
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 70),
           child: Column(
             children: [
               // Header
-              Text(
-                'Lobby Code: $gamecode',
-                style:
-                    const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+              Consumer<TCPClient>(
+                builder: (context, tcpClient, child) {
+                  return Text(
+                    'Lobby Code: ${tcpClient.gamecode}',
+                    style: const TextStyle(
+                        fontSize: 40, fontWeight: FontWeight.bold),
+                  );
+                },
               ),
 
               const SizedBox(height: 24),
 
               // 3×3 grid
               Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                    maxCrossAxisExtent: 400,
-                    mainAxisSpacing: 16,
-                    crossAxisSpacing: 16,
-                    childAspectRatio: 3,
-                  ),
-                  itemCount: slots.length,
-                  itemBuilder: (context, index) {
-                    return PlayerSlotWidget(player: slots[index]);
+                child: Consumer<TCPClient>(
+                  builder: (context, tcpClient, child) {
+                    final List<PlayerSlot> slots = tcpClient.players
+                        .map((player) => PlayerSlot(
+                              name: player['playername'] as String,
+                              isReady: player['is-ready'] as bool,
+                            ))
+                        .toList();
+
+                    return GridView.builder(
+                      gridDelegate:
+                          const SliverGridDelegateWithMaxCrossAxisExtent(
+                        maxCrossAxisExtent: 400,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 3,
+                      ),
+                      itemCount: slots.length,
+                      itemBuilder: (context, index) {
+                        return PlayerSlotWidget(player: slots[index]);
+                      },
+                    );
                   },
                 ),
               ),
@@ -109,17 +133,24 @@ class LobbyScreen extends StatelessWidget {
               const SizedBox(height: 24),
 
               // Ready button
-              ElevatedButton(
-                onPressed: () {}, // later: mark ready
-                style: ElevatedButton.styleFrom(
-                  side: const BorderSide(width: 2, color: Colors.green),
-                  padding:
-                      const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-                ),
-                child: const Text(
-                  'Ready',
-                  style: TextStyle(fontSize: 30, color: Colors.black87),
-                ),
+              Consumer<TCPClient>(
+                builder: (context, tcpClient, child) {
+                  return ElevatedButton(
+                    onPressed: () =>
+                        handleReadyClick(tcpClient), // later: mark ready
+                    style: ElevatedButton.styleFrom(
+                      side: BorderSide(
+                          width: 2,
+                          color: tcpClient.isReady ? Colors.green : Colors.red),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 16, horizontal: 32),
+                    ),
+                    child: const Text(
+                      'Ready',
+                      style: TextStyle(fontSize: 30, color: Colors.black87),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -128,5 +159,7 @@ class LobbyScreen extends StatelessWidget {
     );
   }
 
-  handleReadyClick() {}
+  void handleReadyClick(TCPClient tcpClient) {
+    tcpClient.togglePlayStatus();
+  }
 }
