@@ -162,9 +162,16 @@ class GameScreen extends StatelessWidget {
               bottom: 16,
               right: 16,
               child: ElevatedButton(
-                onPressed: () {/* … */},
+                onPressed: () {
+                  context.read<TCPClient>().closeConnection().then((_) {
+                    Navigator.of(context).pop();
+                  });
+                },
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text('Exit'),
+                child: const Text(
+                  'Exit',
+                  style: TextStyle(fontSize: 20),
+                ),
               ),
             ),
           ],

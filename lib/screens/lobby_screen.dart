@@ -77,16 +77,11 @@ class _LobbyScreenState extends State<LobbyScreen> with RouteAware {
     attachPacketListener();
   }
 
-  @override
-  void didPopNext() {
-    attachPacketListener();
-  }
-
   void attachPacketListener() {
     final client = context.read<TCPClient>();
     _packetSubscription = client.packetStream.listen((packet) {
       if (packet is GameStartPacket) {
-        Navigator.of(context).push(
+        Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const GameScreen(),
           ),
@@ -94,6 +89,12 @@ class _LobbyScreenState extends State<LobbyScreen> with RouteAware {
         _packetSubscription.cancel();
       }
     });
+  }
+
+  @override
+  void dispose() {
+    _packetSubscription.cancel();
+    super.dispose();
   }
 
   @override
