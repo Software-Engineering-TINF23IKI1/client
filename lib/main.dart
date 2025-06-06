@@ -18,7 +18,7 @@ class MainApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (context) => TCPClient(),
       child: MaterialApp(
-        home: TitleScreen(),
+        home: const TitleScreen(),
         navigatorObservers: [routeObserver],
       ),
     );
