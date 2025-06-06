@@ -1,6 +1,8 @@
 import 'dart:async';
+import 'dart:ffi';
 import 'dart:io';
 import 'dart:convert';
+import 'package:bbc_client/constants.dart';
 import "package:bbc_client/tcp/packets.dart";
 import 'package:flutter/material.dart';
 
@@ -16,11 +18,21 @@ class TCPClient extends ChangeNotifier {
 
   // in game
   double currency = 0.0;
+
+  double get localCurrency =>
+      currency + (clickModifier * (_clickBuffer + _sentClicksSinceLastSync));
+
   double score = 0.0;
+  double clickModifier = 1.0;
   List<JsonObject> topPlayers = List.empty();
 
   final _packetController = StreamController<dynamic>.broadcast();
   Stream<dynamic> get packetStream => _packetController.stream;
+
+  int _clickBuffer = 0;
+  int _sentClicksSinceLastSync = 0;
+
+  Timer? _clickBufferTimer;
 
   Future<void> createConnection([String? ipAddress, int? port]) async {
     this.ipAddress = ipAddress;
@@ -29,6 +41,12 @@ class TCPClient extends ChangeNotifier {
       throw Exception("IP address and port must be set before connecting.");
     }
     socket = await Socket.connect(this.ipAddress, port);
+
+    if (_clickBufferTimer == null || !_clickBufferTimer!.isActive) {
+      print("Creating Timer");
+      _clickBufferTimer =
+          Timer.periodic(playerClickPackageInterval, (_) => _sendClicks());
+    }
 
     socket?.listen(
       (List<int> data) {
@@ -49,6 +67,7 @@ class TCPClient extends ChangeNotifier {
   }
 
   Future<void> closeConnection() async {
+    _clickBufferTimer?.cancel();
     if (socket == null) return;
     socket?.destroy();
     await socket?.close();
@@ -73,6 +92,8 @@ class TCPClient extends ChangeNotifier {
         currency = packet.currency;
         score = packet.score;
         topPlayers = packet.topPlayers;
+        clickModifier = packet.clickModifier;
+        _sentClicksSinceLastSync = 0;
         break;
     }
     notifyListeners();
@@ -124,6 +145,19 @@ class TCPClient extends ChangeNotifier {
     print("Joining game with code: $gameCode");
   }
 
+  void increaseClickBuffer(int numClicks) {
+    _clickBuffer += numClicks;
+  }
+
+  void _sendClicks() async {
+    int clicksSent = _clickBuffer;
+    _clickBuffer -= clicksSent;
+    _sentClicksSinceLastSync += clicksSent;
+    var packet = PlayerClicksPacket(clicksSent);
+    socket?.add(packet.createPacket());
+    notifyListeners();
+  }
+
   void togglePlayStatus() {
     updatePlayStatus(!isReady);
   }
@@ -133,12 +167,12 @@ class TCPClient extends ChangeNotifier {
     socket?.add(packet.createPacket());
     print("Updated play status to: $isReady");
     print("Updating play status to: $isReady");
-    notifyListeners();
   }
 
   @override
   void dispose() {
-    socket?.close();
+    _clickBufferTimer?.cancel();
+    closeConnection();
     _packetController.close();
     super.dispose();
   }
