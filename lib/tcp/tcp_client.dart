@@ -14,6 +14,11 @@ class TCPClient extends ChangeNotifier {
   String gamecode = "";
   List<JsonObject> players = List.empty();
 
+  // in game
+  double currency = 0.0;
+  double score = 0.0;
+  List<JsonObject> topPlayers = List.empty();
+
   final _packetController = StreamController<dynamic>.broadcast();
   Stream<dynamic> get packetStream => _packetController.stream;
 
@@ -62,6 +67,12 @@ class TCPClient extends ChangeNotifier {
             isReady = player['is-ready'];
           }
         }
+        break;
+
+      case GameUpdatePacket():
+        currency = packet.currency;
+        score = packet.score;
+        topPlayers = packet.topPlayers;
         break;
     }
     notifyListeners();
@@ -114,7 +125,7 @@ class TCPClient extends ChangeNotifier {
   }
 
   void togglePlayStatus() {
-    this.updatePlayStatus(!isReady);
+    updatePlayStatus(!isReady);
   }
 
   void updatePlayStatus(bool isReady) async {

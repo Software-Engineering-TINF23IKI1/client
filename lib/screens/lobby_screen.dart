@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bbc_client/screens/game_screen.dart';
 import 'package:bbc_client/tcp/packets.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
@@ -57,10 +60,42 @@ class PlayerSlotWidget extends StatelessWidget {
 }
 
 // 3. The LobbyScreen
-class LobbyScreen extends StatelessWidget {
+class LobbyScreen extends StatefulWidget {
   const LobbyScreen({
     Key? key,
   }) : super(key: key);
+
+  @override
+  State<LobbyScreen> createState() => _LobbyScreenState();
+}
+
+class _LobbyScreenState extends State<LobbyScreen> with RouteAware {
+  late StreamSubscription _packetSubscription;
+  @override
+  void initState() {
+    super.initState();
+    attachPacketListener();
+  }
+
+  void attachPacketListener() {
+    final client = context.read<TCPClient>();
+    _packetSubscription = client.packetStream.listen((packet) {
+      if (packet is GameStartPacket) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const GameScreen(),
+          ),
+        );
+        _packetSubscription.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _packetSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

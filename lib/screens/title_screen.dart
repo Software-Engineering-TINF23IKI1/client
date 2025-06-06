@@ -50,7 +50,7 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
       if (packet is LobbyStatusPacket) {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (context) => LobbyScreen(),
+            builder: (context) => const LobbyScreen(),
           ),
         );
         _packetSubscription.cancel();
@@ -124,20 +124,22 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                                         color: ColorPalette.yellow1
                                             .withOpacity(1.0),
                                         width: 2)),
-                                contentPadding: EdgeInsets.symmetric(
+                                contentPadding: const EdgeInsets.symmetric(
                                     vertical: 12, horizontal: 24)),
-                            style: TextStyle(color: Colors.white, fontSize: 15),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 15),
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                         SizedBox(
                           child: TextField(
                             controller: playerNameController,
                             decoration: titlePageTextFieldDecoration.copyWith(
                               labelText: "Enter Player Name",
                             ),
-                            style: TextStyle(color: Colors.white, fontSize: 20),
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 20),
                             textAlign: TextAlign.center,
                           ),
                         ),
@@ -150,26 +152,28 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                                 width: 170,
                                 child: TextField(
                                   controller: gameCodeController,
-                                  decoration:
-                                      titlePageTextFieldDecoration
-                                          .copyWith(
-                                              labelText: "Game Code",
-                                              hintText: "XXXXXX",
-                                              prefixIconConstraints:
-                                                  BoxConstraints(minWidth: 10),
-                                              prefixIcon: Text("   #  ",
-                                                  style: TextStyle(
+                                  decoration: titlePageTextFieldDecoration
+                                      .copyWith(
+                                          labelText: "Game Code",
+                                          hintText: "XXXXXX",
+                                          prefixIconConstraints:
+                                              const BoxConstraints(
+                                                  minWidth: 10),
+                                          prefixIcon: const Text(
+                                              "   #  ",
+                                              style:
+                                                  TextStyle(
                                                       color: Colors.white70,
                                                       fontSize: 20)),
-                                              floatingLabelBehavior:
-                                                  FloatingLabelBehavior.always,
-                                              labelStyle:
-                                                  titlePageTextFieldDecoration
-                                                      .labelStyle
-                                                      ?.copyWith(fontSize: 18),
-                                              hintStyle: TextStyle(
-                                                  color: Colors.white70)),
-                                  style: TextStyle(
+                                          floatingLabelBehavior:
+                                              FloatingLabelBehavior.always,
+                                          labelStyle:
+                                              titlePageTextFieldDecoration
+                                                  .labelStyle
+                                                  ?.copyWith(fontSize: 18),
+                                          hintStyle: const TextStyle(
+                                              color: Colors.white70)),
+                                  style: const TextStyle(
                                       color: Colors.white, fontSize: 20),
                                 ),
                               ),
@@ -215,7 +219,7 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                             ],
                           ),
                         ),
-                        SizedBox(height: 16),
+                        const SizedBox(height: 16),
                         SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
@@ -226,7 +230,7 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                             ),
                           ),
                         ),
-                        Spacer()
+                        const Spacer()
                       ],
                     ),
                   ),
