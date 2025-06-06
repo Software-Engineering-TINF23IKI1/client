@@ -79,7 +79,7 @@ class GameScreen extends StatelessWidget {
                         Consumer<TCPClient>(
                           builder: (context, tcpClient, child) {
                             return Text(
-                              'Bananas: ${(tcpClient.localCurrency).toStringAsFixed(2)}',
+                              'Bananas: ${(tcpClient.currency).toStringAsFixed(2)}',
                               style: const TextStyle(fontSize: 32),
                             );
                           },

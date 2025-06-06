@@ -19,9 +19,6 @@ class TCPClient extends ChangeNotifier {
   // in game
   double currency = 0.0;
 
-  double get localCurrency =>
-      currency + (clickModifier * (_clickBuffer + _sentClicksSinceLastSync));
-
   double score = 0.0;
   double clickModifier = 1.0;
   List<JsonObject> topPlayers = List.empty();
@@ -30,9 +27,10 @@ class TCPClient extends ChangeNotifier {
   Stream<dynamic> get packetStream => _packetController.stream;
 
   int _clickBuffer = 0;
-  int _sentClicksSinceLastSync = 0;
 
   Timer? _clickBufferTimer;
+
+  DateTime _lastCurrencySync = DateTime.fromMillisecondsSinceEpoch(0);
 
   Future<void> createConnection([String? ipAddress, int? port]) async {
     this.ipAddress = ipAddress;
@@ -89,11 +87,15 @@ class TCPClient extends ChangeNotifier {
         break;
 
       case GameUpdatePacket():
-        currency = packet.currency;
+        var now = DateTime.now();
+        if (now.difference(_lastCurrencySync) >= currencySyncInterval) {
+          print("syncing server");
+          currency = packet.currency;
+          _lastCurrencySync = now;
+        }
         score = packet.score;
         topPlayers = packet.topPlayers;
         clickModifier = packet.clickModifier;
-        _sentClicksSinceLastSync = 0;
         break;
     }
     notifyListeners();
@@ -147,15 +149,17 @@ class TCPClient extends ChangeNotifier {
 
   void increaseClickBuffer(int numClicks) {
     _clickBuffer += numClicks;
+    currency += numClicks * clickModifier;
   }
 
   void _sendClicks() async {
-    int clicksSent = _clickBuffer;
-    _clickBuffer -= clicksSent;
-    _sentClicksSinceLastSync += clicksSent;
-    var packet = PlayerClicksPacket(clicksSent);
-    socket?.add(packet.createPacket());
-    notifyListeners();
+    if (_clickBuffer > 0) {
+      int clicksSent = _clickBuffer;
+      _clickBuffer -= clicksSent;
+      var packet = PlayerClicksPacket(clicksSent);
+      socket?.add(packet.createPacket());
+      notifyListeners();
+    }
   }
 
   void togglePlayStatus() {
