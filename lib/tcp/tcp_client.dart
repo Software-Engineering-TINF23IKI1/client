@@ -74,6 +74,7 @@ class TCPClient extends ChangeNotifier {
 
     switch (jsonResponse['type']) {
       case "exception":
+        // maybe add the specific exceptions
         return ExceptionPacket(jsonBody['name'], jsonBody['details']);
       case "lobby-status":
         return LobbyStatusPacket(jsonBody['gamecode'], jsonBody['players']);
@@ -89,6 +90,11 @@ class TCPClient extends ChangeNotifier {
       case "end-routine":
         return EndRoutinePacket(
             jsonBody['score'], jsonBody['is-winner'], jsonBody['scoreboard']);
+      case "shop-broadcast":
+        return ShopBroadcastPacket(jsonBody['shop_entries']);
+      case "shop-purchase-confirmation":
+        return ShopPurchaseConfirmationPacket(
+            jsonBody['name'], jsonBody['tier']);
     }
     return null;
   }
