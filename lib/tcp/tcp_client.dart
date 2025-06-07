@@ -21,6 +21,7 @@ class TCPClient extends ChangeNotifier {
 
   double score = 0.0;
   double clickModifier = 1.0;
+  double passiveGain = 0.0;
   List<JsonObject> topPlayers = List.empty();
 
   final _packetController = StreamController<dynamic>.broadcast();
@@ -29,7 +30,9 @@ class TCPClient extends ChangeNotifier {
   int _clickBuffer = 0;
 
   Timer? _clickBufferTimer;
+  Timer? _simTimer;
 
+  DateTime _lastSimStep = DateTime.fromMillisecondsSinceEpoch(0);
   DateTime _lastCurrencySync = DateTime.fromMillisecondsSinceEpoch(0);
 
   Future<void> createConnection([String? ipAddress, int? port]) async {
@@ -96,6 +99,7 @@ class TCPClient extends ChangeNotifier {
         score = packet.score;
         topPlayers = packet.topPlayers;
         clickModifier = packet.clickModifier;
+        passiveGain = packet.passiveGain;
         break;
     }
     notifyListeners();
@@ -127,6 +131,7 @@ class TCPClient extends ChangeNotifier {
       case "shop-broadcast":
         return ShopBroadcastPacket(jsonBody['shop_entries']);
       case "shop-purchase-confirmation":
+        _sendClicks();
         return ShopPurchaseConfirmationPacket(
             jsonBody['name'], jsonBody['tier']);
     }
@@ -171,6 +176,16 @@ class TCPClient extends ChangeNotifier {
     socket?.add(packet.createPacket());
     print("Updated play status to: $isReady");
     print("Updating play status to: $isReady");
+  }
+
+  void _onSimTick(Timer _) {
+    final now = DateTime.now();
+    final dtSec = now.difference(_lastSimStep).inMilliseconds / 1000.0;
+    _lastSimStep = now;
+
+    if (passiveGain == 0) return;
+    score += passiveGain * dtSec;
+    notifyListeners();
   }
 
   @override
