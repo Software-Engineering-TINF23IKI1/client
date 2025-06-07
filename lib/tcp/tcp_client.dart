@@ -20,6 +20,7 @@ class TCPClient extends ChangeNotifier {
   double currency = 0.0;
 
   double score = 0.0;
+  double _lastServerCurrency = 0.0;
   double clickModifier = 1.0;
   double passiveGain = 0.0;
   List<JsonObject> topPlayers = List.empty();
@@ -100,6 +101,14 @@ class TCPClient extends ChangeNotifier {
         topPlayers = packet.topPlayers;
         clickModifier = packet.clickModifier;
         passiveGain = packet.passiveGain;
+        break;
+
+      case GameStartPacket():
+        if (_simTimer == null || !_simTimer!.isActive) {
+          _lastSimStep = DateTime.now();
+          _simTimer =
+              Timer.periodic(const Duration(milliseconds: 500), _onSimTick);
+        }
         break;
     }
     notifyListeners();
@@ -184,13 +193,15 @@ class TCPClient extends ChangeNotifier {
     _lastSimStep = now;
 
     if (passiveGain == 0) return;
-    score += passiveGain * dtSec;
+
+    currency += passiveGain * dtSec;
     notifyListeners();
   }
 
   @override
   void dispose() {
     _clickBufferTimer?.cancel();
+    _simTimer?.cancel();
     closeConnection();
     _packetController.close();
     super.dispose();
