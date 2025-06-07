@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:convert';
+import 'package:bbc_client/shop_entry.dart';
 import "package:bbc_client/tcp/packets.dart";
 import 'package:flutter/material.dart';
 
@@ -18,9 +19,18 @@ class TCPClient extends ChangeNotifier {
   double currency = 0.0;
   double score = 0.0;
   List<JsonObject> topPlayers = List.empty();
-
+  final List<ShopEntry> _shopEntries = [];
+  List<ShopEntry> get shopEntries => List.unmodifiable(_shopEntries);
+  // shop
   final _packetController = StreamController<dynamic>.broadcast();
   Stream<dynamic> get packetStream => _packetController.stream;
+  // pending shop purchases
+  final Set<String> _pendingUpgrades = {};
+  bool _isPurchasePending(String name, int tier) =>
+      _pendingUpgrades.contains('$name#$tier');
+  bool isPurchasePending(String name, int tier) {
+    return _isPurchasePending(name, tier);
+  }
 
   Future<void> createConnection([String? ipAddress, int? port]) async {
     this.ipAddress = ipAddress;
@@ -69,11 +79,33 @@ class TCPClient extends ChangeNotifier {
         }
         break;
 
+      case ShopBroadcastPacket():
+        _shopEntries.clear();
+        _shopEntries.addAll(parseShopEntries(packet.shopEntries));
+        break;
+
       case GameUpdatePacket():
         currency = packet.currency;
         score = packet.score;
         topPlayers = packet.topPlayers;
         break;
+
+      case ShopPurchaseConfirmationPacket():
+        final key = '${packet.getName()}#${packet.getTier()}';
+        _pendingUpgrades.remove(key);
+
+        // find the entry
+        final entry =
+            _shopEntries.firstWhere((e) => e.name == packet.getName());
+
+        switch (entry) {
+          case SingleEntry e:
+            e.bought = true;
+            break;
+          case TieredEntry e:
+            e.currentLevel = packet.getTier() + 1; // server tier is 0-based
+            break;
+        }
     }
     notifyListeners();
   }
@@ -133,6 +165,31 @@ class TCPClient extends ChangeNotifier {
     socket?.add(packet.createPacket());
     print("Updated play status to: $isReady");
     print("Updating play status to: $isReady");
+    notifyListeners();
+  }
+
+  Future<void> buyShopEntry(ShopEntry entry) async {
+    final (name, tier) = switch (entry) {
+      SingleEntry e => (e.name, 0),
+      TieredEntry e when !e.maxed => (e.name, e.currentLevel),
+      _ => throw StateError('Nothing to buy'),
+    };
+
+    // make sure the entry is not already pending
+    if (_isPurchasePending(name, tier)) return;
+    _pendingUpgrades.add('$name#$tier');
+    notifyListeners(); // disables the button
+
+    // 3. Emit the packet
+    final pkt = ShopPurchaseRequestPacket(name, tier);
+    socket?.add(pkt.createPacket());
+
+    unawaited(_timeoutPending(name, tier));
+  }
+
+  Future<void> _timeoutPending(String name, int tier) async {
+    await Future<void>.delayed(const Duration(seconds: 5));
+    _pendingUpgrades.remove('$name#$tier');
     notifyListeners();
   }
 
