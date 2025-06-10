@@ -22,4 +22,5 @@ flutter:
   assets:
     - assets/
     - assets/title_screen/
+    - assets/game_screen/
 

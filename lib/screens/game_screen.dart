@@ -192,12 +192,27 @@ class GameScreen extends StatefulWidget with RouteAware {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen>
+    with SingleTickerProviderStateMixin {
   late StreamSubscription _packetSubscription;
+
+  late AnimationController _bananaAnimationController;
+  late Animation<double> _bananaAnimation;
+
   @override
   void initState() {
     super.initState();
     attachPacketListener();
+
+    _bananaAnimationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 100));
+
+    _bananaAnimation = Tween<double>(begin: 1.0, end: 1.15).animate(
+      CurvedAnimation(
+        parent: _bananaAnimationController,
+        curve: Curves.linear,
+      ),
+    );
   }
 
   void attachPacketListener() {
@@ -220,6 +235,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     _packetSubscription.cancel();
+    _bananaAnimationController.dispose();
     super.dispose();
   }
 
@@ -266,12 +282,22 @@ class _GameScreenState extends State<GameScreen> {
                           cursor: SystemMouseCursors.click,
                           child: GestureDetector(
                             onTapDown: (_) {
+                              if (_bananaAnimationController.isAnimating) {
+                                _bananaAnimationController.reset();
+                              }
+                              _bananaAnimationController.forward().then((_) {
+                                _bananaAnimationController.reset();
+                              });
                               context.read<TCPClient>().increaseClickBuffer(1);
                             },
-                            child: SizedBox(
-                              width: 300,
-                              height: 300,
-                              child: Image.asset('assets/banana.png'),
+                            child: ScaleTransition(
+                              scale: _bananaAnimation,
+                              child: SizedBox(
+                                width: 300,
+                                height: 300,
+                                child: Image.asset(
+                                    'assets/game_screen/banana_rotated.png'),
+                              ),
                             ),
                           ),
                         )

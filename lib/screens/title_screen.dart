@@ -85,7 +85,7 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                           heightFactor: 0.5,
                           widthFactor: 0.5,
                           alignment: Alignment.topCenter,
-                          child: Image.asset('assets/banana.png')),
+                          child: Image.asset('assets/title_screen/banana.png')),
                     ),
                   ],
                 ),
