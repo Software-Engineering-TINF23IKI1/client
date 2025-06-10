@@ -155,7 +155,7 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                                   decoration: titlePageTextFieldDecoration
                                       .copyWith(
                                           labelText: "Game Code",
-                                          hintText: "XXXXXX",
+                                          hintText: "XXXX",
                                           prefixIconConstraints:
                                               const BoxConstraints(
                                                   minWidth: 10),
