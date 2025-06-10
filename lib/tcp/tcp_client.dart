@@ -10,6 +10,7 @@ class TCPClient extends ChangeNotifier {
   String? ipAddress;
   int? port;
   Socket? socket;
+  List<String> packetStreamQueue = List.empty(growable: true);
 
   String? playerName;
   bool isReady = false;
@@ -62,12 +63,28 @@ class TCPClient extends ChangeNotifier {
 
     socket?.listen(
       (List<int> data) {
-        final packet = createPacketFromResponse(data);
-        //packet?.printPacket();
-        if (packet != null) {
-          handlePacket(packet);
-          _packetController.add(packet);
+        for (var packetResponse in utf8.decode(data).split('\x1e')) {
+          final packet = createPacketFromResponse(packetResponse);
+          if (packet != null) {
+            handlePacket(packet);
+            _packetController.add(packet);
+          } else {
+            if (packetStreamQueue.isEmpty) {
+              packetStreamQueue.add(packetResponse);
+            } else {
+              String packetParts = packetStreamQueue.join("") + packetResponse;
+              final packet_ = createPacketFromResponse(packetParts);
+              if (packet_ != null) {
+                handlePacket(packet_);
+                _packetController.add(packet_);
+                packetStreamQueue.clear();
+              } else {
+                packetStreamQueue.add(packetResponse);
+              }
+            }
+          }
         }
+        //packet?.printPacket();
       },
       onDone: () {
         closeConnection();
@@ -145,13 +162,29 @@ class TCPClient extends ChangeNotifier {
         }
         // update currency in next game update
         _updatingCurrency = true;
+
+      case EndRoutinePacket():
+        _simTimer?.cancel();
+        _clickBufferTimer?.cancel();
+        _lastServerCurrency = currency;
+        currency = packet.score; // update currency to final score
+        isReady = false; // reset ready status for next game
+        gamecode = "";
+        players.clear();
+        topPlayers.clear();
+        _packetController.add(packet);
+        break;
     }
     notifyListeners();
   }
 
-  PacketLayout? createPacketFromResponse(List<int> data) {
-    String response = utf8.decode(data).split('\x1e').first;
-    var jsonResponse = jsonDecode(response);
+  PacketLayout? createPacketFromResponse(String response) {
+    dynamic jsonResponse;
+    try {
+      jsonResponse = jsonDecode(response);
+    } catch (e) {
+      return null;
+    }
     var jsonBody = jsonResponse['body'];
 
     switch (jsonResponse['type']) {
@@ -170,8 +203,8 @@ class TCPClient extends ChangeNotifier {
             jsonBody['passive-gain'].toDouble(),
             jsonBody['top-players']);
       case "end-routine":
-        return EndRoutinePacket(
-            jsonBody['score'], jsonBody['is-winner'], jsonBody['scoreboard']);
+        return EndRoutinePacket(jsonBody['score'].toDouble(),
+            jsonBody['is-winner'], jsonBody['scoreboard']);
       case "shop-broadcast":
         return ShopBroadcastPacket(jsonBody['shop_entries']);
       case "shop-purchase-confirmation":
