@@ -234,20 +234,19 @@ class GameScreen extends StatelessWidget {
                           },
                         ),
                         const SizedBox(height: 40),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<TCPClient>().increaseClickBuffer(1);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 40,
-                              vertical: 20,
+                        MouseRegion(
+                          cursor: SystemMouseCursors.click,
+                          child: GestureDetector(
+                            onTapDown: (_) {
+                              context.read<TCPClient>().increaseClickBuffer(1);
+                            },
+                            child: SizedBox(
+                              width: 300,
+                              height: 300,
+                              child: Image.asset('assets/banana.png'),
                             ),
-                            textStyle: const TextStyle(fontSize: 24),
                           ),
-                          child:
-                              const Text('🍌', style: TextStyle(fontSize: 70)),
-                        ),
+                        )
                       ],
                     ),
                   ),
