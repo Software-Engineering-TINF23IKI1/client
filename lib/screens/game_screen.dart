@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:bbc_client/constants.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -189,7 +192,7 @@ class GameScreen extends StatelessWidget {
                         Consumer<TCPClient>(
                           builder: (context, tcpClient, child) {
                             return Text(
-                              'Bananas: ${tcpClient.currency.toStringAsFixed(2)}',
+                              'Bananas: ${(tcpClient.currency).toStringAsFixed(2)}',
                               style: const TextStyle(fontSize: 32),
                             );
                           },
@@ -206,7 +209,7 @@ class GameScreen extends StatelessWidget {
                         const SizedBox(height: 40),
                         ElevatedButton(
                           onPressed: () {
-                            //startGame();
+                            context.read<TCPClient>().increaseClickBuffer(1);
                           },
                           style: ElevatedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(
