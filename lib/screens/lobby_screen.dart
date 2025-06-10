@@ -98,6 +98,13 @@ class _LobbyScreenState extends State<LobbyScreen> with RouteAware {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    precacheImage(AssetImage('assets/lobby_screen/lobby.png'), context);
+  }
+
+  @override
   void dispose() {
     _packetSubscription.cancel();
     super.dispose();

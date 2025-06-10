@@ -15,9 +15,6 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    precacheImage(AssetImage('assets/lobby_screen/lobby.png'), context);
-    precacheImage(AssetImage('assets/title_screen/background.png'), context);
-
     return ChangeNotifierProvider(
       create: (context) => TCPClient(),
       child: MaterialApp(

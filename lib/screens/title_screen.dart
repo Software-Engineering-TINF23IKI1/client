@@ -280,6 +280,9 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    precacheImage(AssetImage('assets/title_screen/background.png'), context);
+
     final ModalRoute? route = ModalRoute.of(context);
     if (route is PageRoute) {
       routeObserver.subscribe(this, route);
