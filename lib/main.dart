@@ -19,6 +19,7 @@ class MainApp extends StatelessWidget {
       create: (context) => TCPClient(),
       child: MaterialApp(
         home: const TitleScreen(),
+        theme: ThemeData(fontFamily: 'GilSansMt'),
         navigatorObservers: [routeObserver],
       ),
     );

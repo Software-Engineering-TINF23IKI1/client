@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   provider: ^6.1.5
+  stroke_text: ^1.0.0
 
 dev_dependencies:
   flutter_test:
@@ -20,4 +21,13 @@ flutter:
   uses-material-design: true
 
   assets:
+    - assets/
     - assets/title_screen/
+    - assets/lobby_screen/
+    - assets/game_screen/
+
+  fonts:
+    - family: GilSansMt
+      fonts:
+        - asset: fonts/GILB____.TTF
+    

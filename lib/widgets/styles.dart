@@ -7,7 +7,7 @@ final titleScreenButtonStyle = ElevatedButton.styleFrom(
     backgroundColor: ColorPalette.blue1,
     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
     foregroundColor: Colors.black87,
-    textStyle: const TextStyle(fontSize: 30));
+    textStyle: const TextStyle(fontSize: 30, fontFamily: 'GilSansMt'));
 
 final titlePageTextFieldDecoration = InputDecoration(
     border: OutlineInputBorder(

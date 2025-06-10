@@ -155,7 +155,7 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                                   decoration: titlePageTextFieldDecoration
                                       .copyWith(
                                           labelText: "Game Code",
-                                          hintText: "XXXXXX",
+                                          hintText: "XXXX",
                                           prefixIconConstraints:
                                               const BoxConstraints(
                                                   minWidth: 10),
@@ -280,6 +280,9 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+
+    precacheImage(AssetImage('assets/title_screen/background.png'), context);
+
     final ModalRoute? route = ModalRoute.of(context);
     if (route is PageRoute) {
       routeObserver.subscribe(this, route);
