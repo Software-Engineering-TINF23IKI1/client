@@ -4,7 +4,7 @@ import 'package:bbc_client/tcp/packets.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bbc_client/screens/gameEnd_screen.dart';
+import 'package:bbc_client/screens/game_end_screen.dart';
 import 'package:bbc_client/shop_entry.dart';
 
 class LeaderboardEntry {
