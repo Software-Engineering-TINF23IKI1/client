@@ -100,7 +100,9 @@ class _SingleCard extends StatelessWidget {
         title: Text(entry.name),
         subtitle: Text(entry.description),
         trailing: ElevatedButton(
-          onPressed: (owned || pending) ? null : () => tcp.buyShopEntry(entry),
+          onPressed: (owned || pending || entry.price > tcp.currency)
+              ? null
+              : () => tcp.buyShopEntry(entry),
           child: Text(
             owned
                 ? 'Owned'
@@ -149,7 +151,9 @@ class _TieredCard extends StatelessWidget {
                   : 'Tier ${entry.currentLevel + 1} of ${entry.tiers.length}'),
         ),
         trailing: ElevatedButton(
-          onPressed: (maxed || pending) ? null : () => tcp.buyShopEntry(entry),
+          onPressed: (maxed || pending || nextTier!.price > tcp.currency)
+              ? null
+              : () => tcp.buyShopEntry(entry),
           child: Text(buttonLabel),
         ),
       ),
