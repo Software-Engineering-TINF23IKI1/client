@@ -237,9 +237,9 @@ class _GameScreenState extends State<GameScreen>
   void didChangeDependencies() {
     super.didChangeDependencies();
 
-    precacheImage(AssetImage('assets/lobby_screen/GameBG.png'), context);
-    precacheImage(AssetImage('assets/lobby_screen/GameBT.png'), context);
-    precacheImage(AssetImage('assets/lobby_screen/GameBP.png'), context);
+    precacheImage(AssetImage('assets/game_screen/GameBG.png'), context);
+    precacheImage(AssetImage('assets/game_screen/GameBT.png'), context);
+    precacheImage(AssetImage('assets/game_screen/GameBP.png'), context);
   }
 
   void attachPacketListener() {
