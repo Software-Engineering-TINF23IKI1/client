@@ -233,6 +233,15 @@ class _GameScreenState extends State<GameScreen>
     );
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    precacheImage(AssetImage('assets/lobby_screen/GameBG.png'), context);
+    precacheImage(AssetImage('assets/lobby_screen/GameBT.png'), context);
+    precacheImage(AssetImage('assets/lobby_screen/GameBP.png'), context);
+  }
+
   void attachPacketListener() {
     final client = context.read<TCPClient>();
     _packetSubscription = client.packetStream.listen((packet) {
