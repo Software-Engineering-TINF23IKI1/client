@@ -4,8 +4,8 @@ import 'package:bbc_client/tcp/packets.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:bbc_client/shop_entry.dart';
 import 'package:bbc_client/screens/gameEnd_screen.dart';
+import 'package:bbc_client/shop_entry.dart';
 
 class LeaderboardEntry {
   final String playerName;
@@ -21,41 +21,6 @@ class LeaderboardWidget extends StatelessWidget {
     Key? key,
     required this.entries,
   }) : super(key: key);
-
-  @override
-  State<LeaderboardWidget> createState() => _LeaderboardWidgetState();
-}
-
-class _LeaderboardWidgetState extends State<LeaderboardWidget> with RouteAware {
-  late StreamSubscription _packetSubscription;
-  @override
-  void initState() {
-    super.initState();
-    attachPacketListener();
-  }
-
-  void attachPacketListener() {
-    final client = context.read<TCPClient>();
-    _packetSubscription = client.packetStream.listen((packet) {
-      if (packet is EndRoutinePacket) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => EndRoutineScreen(
-                finalScore: packet.score,
-                isWinner: packet.isWinner,
-                scoreboard: (packet.scoreboard).cast<JsonObject>()),
-          ),
-        );
-        _packetSubscription.cancel();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    _packetSubscription.cancel();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -220,8 +185,43 @@ class _TieredCard extends StatelessWidget {
   }
 }
 
-class GameScreen extends StatelessWidget {
+class GameScreen extends StatefulWidget with RouteAware {
   const GameScreen({super.key});
+
+  @override
+  State<GameScreen> createState() => _GameScreenState();
+}
+
+class _GameScreenState extends State<GameScreen> {
+  late StreamSubscription _packetSubscription;
+  @override
+  void initState() {
+    super.initState();
+    attachPacketListener();
+  }
+
+  void attachPacketListener() {
+    final client = context.read<TCPClient>();
+    _packetSubscription = client.packetStream.listen((packet) {
+      if (packet is EndRoutinePacket) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => EndRoutineScreen(
+                finalScore: packet.score,
+                isWinner: packet.isWinner,
+                scoreboard: (packet.scoreboard).cast<JsonObject>()),
+          ),
+        );
+        _packetSubscription.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _packetSubscription.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
