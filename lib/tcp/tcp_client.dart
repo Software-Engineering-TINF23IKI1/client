@@ -10,7 +10,7 @@ class TCPClient extends ChangeNotifier {
   String? ipAddress;
   int? port;
   Socket? socket;
-  List<String> packetStreamQueue = List.empty();
+  List<String> packetStreamQueue = List.empty(growable: true);
 
   String? playerName;
   bool isReady = false;
