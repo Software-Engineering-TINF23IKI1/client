@@ -143,7 +143,12 @@ class _TitleScreenState extends State<TitleScreen> with RouteAware {
                             textAlign: TextAlign.center,
                           ),
                         ),
-                        const SizedBox(height: 70),
+                        const SizedBox(height: 35),
+                        Divider(
+                          color: ColorPalette.yellow1.withAlpha(200),
+                          thickness: 5,
+                        ),
+                        const SizedBox(height: 35),
                         SizedBox(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
