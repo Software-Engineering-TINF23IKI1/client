@@ -124,8 +124,7 @@ class TCPClient extends ChangeNotifier {
       case GameStartPacket():
         if (_simTimer == null || !_simTimer!.isActive) {
           _lastSimStep = DateTime.now();
-          _simTimer =
-              Timer.periodic(const Duration(milliseconds: 500), _onSimTick);
+          _simTimer = Timer.periodic(simTimerInterval, _onSimTick);
         }
         break;
 
