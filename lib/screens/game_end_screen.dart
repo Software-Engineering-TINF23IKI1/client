@@ -1,6 +1,7 @@
 // lib/screens/end_routine_screen.dart
 import 'package:flutter/material.dart';
 import 'package:bbc_client/tcp/packets.dart';
+import 'package:bbc_client/widgets/exit_button.dart';
 
 class EndRoutineScreen extends StatelessWidget with RouteAware {
   const EndRoutineScreen({
@@ -59,17 +60,11 @@ class EndRoutineScreen extends StatelessWidget with RouteAware {
                 ),
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
+              ComicButton(
                 onPressed: () => Navigator.of(context).popUntil(
                   (route) => route.isFirst,
                 ),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text(
-                  'Back to title',
-                  style: TextStyle(fontSize: 20),
-                ),
+                label: 'Exit',
               ),
             ],
           ),

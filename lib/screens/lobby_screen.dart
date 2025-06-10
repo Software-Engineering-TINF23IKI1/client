@@ -1,10 +1,13 @@
 import 'dart:async';
 
+import 'package:bbc_client/color_palette.dart';
 import 'package:bbc_client/screens/game_screen.dart';
 import 'package:bbc_client/tcp/packets.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
+import 'package:bbc_client/widgets/styles.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bbc_client/widgets/exit_button.dart';
 
 // 1. Model for one slot
 class PlayerSlot {
@@ -23,12 +26,15 @@ class PlayerSlotWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.black54),
-        borderRadius: BorderRadius.circular(4),
-      ),
+          border: Border.all(color: Colors.black54, width: 2),
+          borderRadius: BorderRadius.circular(4),
+          color: ColorPalette.light),
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       child: Row(
         children: [
+          const SizedBox(
+            width: 8,
+          ), // breathing room
           // Avatar
           const CircleAvatar(
             radius: 16,
@@ -41,7 +47,7 @@ class PlayerSlotWidget extends StatelessWidget {
           Expanded(
             child: Text(
               player.name,
-              style: const TextStyle(fontSize: 22),
+              style: const TextStyle(fontSize: 26),
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -50,7 +56,7 @@ class PlayerSlotWidget extends StatelessWidget {
           Icon(
             player.isReady ? Icons.check : Icons.close,
             color: player.isReady ? Colors.green : Colors.red,
-            size: 30,
+            size: 40,
           ),
           const SizedBox(width: 16),
         ],
@@ -99,97 +105,131 @@ class _LobbyScreenState extends State<LobbyScreen> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    // dummy data
-
     return Scaffold(
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(right: 12, bottom: 12), // breathing room
-        child: ElevatedButton(
-          onPressed: () {
-            context.read<TCPClient>().closeConnection().then((_) {
-              Navigator.of(context).pop();
-            });
-          }, // exit lobby
-          style: ElevatedButton.styleFrom(
-            side: const BorderSide(width: 2, color: Colors.red),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
+      body: Stack(
+        children: [
+          SizedBox.expand(
+            child: Image.asset(
+              'assets/lobby_screen/lobby.png',
+              fit: BoxFit.cover,
+            ),
           ),
-          child: const Text('Exit Lobby',
-              style: TextStyle(fontSize: 20, color: Colors.black87)),
-        ),
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 100, vertical: 70),
-          child: Column(
-            children: [
-              // Header
-              Consumer<TCPClient>(
-                builder: (context, tcpClient, child) {
-                  return Text(
-                    'Lobby Code: ${tcpClient.gamecode}',
-                    style: const TextStyle(
-                        fontSize: 40, fontWeight: FontWeight.bold),
-                  );
-                },
+          Scaffold(
+            backgroundColor: Colors.transparent, // make Scaffold transparent
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+            floatingActionButton: Padding(
+              padding: const EdgeInsets.only(
+                  right: 12, bottom: 12), // breathing room
+              child: ComicButton(
+                onPressed: () {
+                  context.read<TCPClient>().closeConnection().then((_) {
+                    Navigator.of(context).pop();
+                  });
+                }, // exit lobby
+
+                label: 'Exit Lobby',
               ),
+            ),
+            body: SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 100, vertical: 70),
+                child: Column(
+                  children: [
+                    // Header
+                    Row(
+                      children: [
+                        SizedBox.fromSize(
+                          size: const Size(200, 80), // breathing room
+                          child: Image.asset(
+                            'assets/lobby_screen/players.png',
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                        const Spacer(), // breathing room
+                        Align(
+                          alignment: Alignment.topRight,
+                          child: Consumer<TCPClient>(
+                            builder: (context, tcpClient, child) {
+                              return Text('Lobby Code: ${tcpClient.gamecode}',
+                                  style: const TextStyle(
+                                      fontSize: 40,
+                                      fontWeight: FontWeight.bold,
+                                      color: ColorPalette.light));
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
 
-              const SizedBox(height: 24),
+                    const SizedBox(height: 24),
 
-              // 3×3 grid
-              Expanded(
-                child: Consumer<TCPClient>(
-                  builder: (context, tcpClient, child) {
-                    final List<PlayerSlot> slots = tcpClient.players
-                        .map((player) => PlayerSlot(
-                              name: player['playername'] as String,
-                              isReady: player['is-ready'] as bool,
-                            ))
-                        .toList();
+                    // 3×3 grid
+                    Expanded(
+                      child: Consumer<TCPClient>(
+                        builder: (context, tcpClient, child) {
+                          final List<PlayerSlot> slots = tcpClient.players
+                              .map((player) => PlayerSlot(
+                                    name: player['playername'] as String,
+                                    isReady: player['is-ready'] as bool,
+                                  ))
+                              .toList();
 
-                    return GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithMaxCrossAxisExtent(
-                        maxCrossAxisExtent: 400,
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 16,
-                        childAspectRatio: 3,
+                          return GridView.builder(
+                            gridDelegate:
+                                const SliverGridDelegateWithMaxCrossAxisExtent(
+                              maxCrossAxisExtent: 400,
+                              mainAxisSpacing: 16,
+                              crossAxisSpacing: 16,
+                              childAspectRatio: 3,
+                            ),
+                            itemCount: slots.length,
+                            itemBuilder: (context, index) {
+                              return PlayerSlotWidget(player: slots[index]);
+                            },
+                          );
+                        },
                       ),
-                      itemCount: slots.length,
-                      itemBuilder: (context, index) {
-                        return PlayerSlotWidget(player: slots[index]);
+                    ),
+
+                    const SizedBox(height: 24),
+
+                    // Ready button
+                    Consumer<TCPClient>(
+                      builder: (context, tcpClient, child) {
+                        return ElevatedButton(
+                          onPressed: () =>
+                              handleReadyClick(tcpClient), // later: mark ready
+                          style: titleScreenButtonStyle.copyWith(
+                            backgroundColor:
+                                WidgetStatePropertyAll(ColorPalette.yellow1),
+                            side: WidgetStatePropertyAll(
+                              BorderSide(
+                                width: 4,
+                                color: tcpClient.isReady
+                                    ? Colors.green
+                                    : Colors.red,
+                              ),
+                            ),
+                            padding: const WidgetStatePropertyAll(
+                              EdgeInsets.symmetric(
+                                  vertical: 20, horizontal: 40),
+                            ),
+                          ),
+                          child: const Text(
+                            'Ready',
+                            style:
+                                TextStyle(fontSize: 30, color: Colors.black87),
+                          ),
+                        );
                       },
-                    );
-                  },
+                    ),
+                  ],
                 ),
               ),
-
-              const SizedBox(height: 24),
-
-              // Ready button
-              Consumer<TCPClient>(
-                builder: (context, tcpClient, child) {
-                  return ElevatedButton(
-                    onPressed: () =>
-                        handleReadyClick(tcpClient), // later: mark ready
-                    style: ElevatedButton.styleFrom(
-                      side: BorderSide(
-                          width: 2,
-                          color: tcpClient.isReady ? Colors.green : Colors.red),
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 16, horizontal: 32),
-                    ),
-                    child: const Text(
-                      'Ready',
-                      style: TextStyle(fontSize: 30, color: Colors.black87),
-                    ),
-                  );
-                },
-              ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

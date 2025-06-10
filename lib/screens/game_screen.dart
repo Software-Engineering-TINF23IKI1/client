@@ -1,11 +1,13 @@
 import 'dart:async';
 
+import 'package:bbc_client/color_palette.dart';
 import 'package:bbc_client/tcp/packets.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bbc_client/screens/game_end_screen.dart';
 import 'package:bbc_client/shop_entry.dart';
+import 'package:bbc_client/widgets/exit_button.dart';
 
 class LeaderboardEntry {
   final String playerName;
@@ -45,44 +47,60 @@ class ShopWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Stack(
       children: [
-        const Align(
-          alignment: Alignment.centerLeft,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(16, 8, 0, 4),
-            child: Text(
-              'Shop',
-              style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
+        Positioned.fill(
+          child: Image.asset(
+            'assets/game_screen/GameBP.png',
+            fit: BoxFit.cover,
+          ),
+        ),
+        Column(
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 0, 4),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: SizedBox(
+                    height: 50,
+                    child: Image.asset(
+                      'assets/game_screen/Shop.png',
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                ),
+              ),
             ),
-          ),
-        ),
-        Expanded(
-          child: Consumer<TCPClient>(
-            builder: (context, tcp, _) {
-              final entries = tcp.shopEntries;
-              if (entries.isEmpty) {
-                return const Center(child: CircularProgressIndicator());
-              }
+            Expanded(
+              child: Consumer<TCPClient>(
+                builder: (context, tcp, _) {
+                  final entries = tcp.shopEntries;
+                  if (entries.isEmpty) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-              return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(8, 8, 8, 100),
-                itemCount: entries.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final entry = entries[index];
-                  return switch (entry) {
-                    SingleEntry e => _SingleCard(entry: e, tcp: tcp),
-                    TieredEntry e => _TieredCard(entry: e, tcp: tcp),
-                  };
+                  return ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 8, 100),
+                    itemCount: entries.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 8),
+                    itemBuilder: (context, index) {
+                      final entry = entries[index];
+                      return switch (entry) {
+                        SingleEntry e => _SingleCard(entry: e, tcp: tcp),
+                        TieredEntry e => _TieredCard(entry: e, tcp: tcp),
+                      };
+                    },
+                  );
                 },
-              );
-            },
-          ),
+              ),
+            ),
+            const SizedBox(
+              height: 32,
+            )
+          ],
         ),
-        SizedBox(
-          height: 32,
-        )
       ],
     );
   }
@@ -229,11 +247,21 @@ class _GameScreenState extends State<GameScreen> {
       body: SafeArea(
         child: Stack(
           children: [
+            SizedBox.expand(
+              child: Image.asset(
+                'assets/game_screen/GameBG.png',
+                fit: BoxFit.cover,
+              ),
+            ),
             Row(
               children: [
                 // Left side: Shop
                 const Expanded(flex: 2, child: ShopWidget()),
 
+                Container(
+                  width: 8,
+                  color: Colors.black,
+                ),
                 // Center: Game area with score and button
                 Expanded(
                   flex: 3,
@@ -248,7 +276,8 @@ class _GameScreenState extends State<GameScreen> {
                           builder: (context, tcpClient, child) {
                             return Text(
                               'Bananas: ${(tcpClient.currency).toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 32),
+                              style: const TextStyle(
+                                  fontSize: 50, color: ColorPalette.yellow1),
                             );
                           },
                         ),
@@ -257,7 +286,8 @@ class _GameScreenState extends State<GameScreen> {
                           builder: (context, tcpClient, child) {
                             return Text(
                               'Score: ${tcpClient.score.toStringAsFixed(2)}',
-                              style: const TextStyle(fontSize: 32),
+                              style: const TextStyle(
+                                  fontSize: 38, color: ColorPalette.light),
                             );
                           },
                         ),
@@ -274,57 +304,100 @@ class _GameScreenState extends State<GameScreen> {
                             textStyle: const TextStyle(fontSize: 24),
                           ),
                           child:
-                              const Text('🍌', style: TextStyle(fontSize: 70)),
+                              const Text('🍌', style: TextStyle(fontSize: 80)),
                         ),
+                        const SizedBox(height: 40),
+                        Consumer<TCPClient>(
+                          builder: (context, tcpClient, child) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  'Click modifier: x${tcpClient.clickModifier}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 20, color: ColorPalette.light),
+                                ),
+                                SizedBox(width: 20), // spacing between texts
+                                Text(
+                                  'Passive gain: ${tcpClient.passiveGain}',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                      fontSize: 20, color: ColorPalette.light),
+                                ),
+                              ],
+                            );
+                          },
+                        )
                       ],
                     ),
                   ),
                 ),
 
                 // Right side: Leaderboard
+
+                Container(
+                  width: 8,
+                  color: Colors.black,
+                ),
+
                 Expanded(
                   flex: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: FractionallySizedBox(
-                        heightFactor: 2 / 3,
-                        child: Consumer<TCPClient>(
-                          builder: (BuildContext context, TCPClient tcpClient,
-                              Widget? child) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Leaderboard',
-                                  style: TextStyle(
-                                    fontSize: 32,
-                                    fontWeight: FontWeight.bold,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      image: DecorationImage(
+                        image: AssetImage('assets/game_screen/GameBT.png'),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: FractionallySizedBox(
+                          heightFactor: 2 / 3,
+                          widthFactor: 0.9,
+                          child: Consumer<TCPClient>(
+                            builder: (BuildContext context, TCPClient tcpClient,
+                                Widget? child) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Align(
+                                    alignment: Alignment.center,
+                                    child: SizedBox(
+                                      height: 70,
+                                      width: 200, // breathing room
+                                      child: Image.asset(
+                                        'assets/game_screen/LeaderBoard.png',
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                // Use the LeaderboardWidget with dummy data
-                                Expanded(
-                                  child: LeaderboardWidget(
-                                    entries: tcpClient.topPlayers
-                                        .map((player) => LeaderboardEntry(
-                                              playerName:
-                                                  player['playername'] ??
-                                                      'Unknown',
-                                              score: player['score'] ?? 0,
-                                            ))
-                                        .toList(),
+                                  const SizedBox(height: 16),
+                                  // Use the LeaderboardWidget with dummy data
+                                  Expanded(
+                                    child: LeaderboardWidget(
+                                      entries: tcpClient.topPlayers
+                                          .map((player) => LeaderboardEntry(
+                                                playerName:
+                                                    player['playername'] ??
+                                                        'Unknown',
+                                                score: player['score'] ?? 0,
+                                              ))
+                                          .toList(),
+                                    ),
                                   ),
-                                ),
-                              ],
-                            );
-                          },
+                                ],
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
+                )
               ],
             ),
 
@@ -332,17 +405,13 @@ class _GameScreenState extends State<GameScreen> {
             Positioned(
               bottom: 16,
               right: 16,
-              child: ElevatedButton(
+              child: ComicButton(
                 onPressed: () {
                   context.read<TCPClient>().closeConnection().then((_) {
                     Navigator.of(context).pop();
                   });
                 },
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                child: const Text(
-                  'Exit',
-                  style: TextStyle(fontSize: 20),
-                ),
+                label: 'Exit Game',
               ),
             ),
           ],
