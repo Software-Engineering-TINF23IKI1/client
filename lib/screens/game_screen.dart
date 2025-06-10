@@ -65,7 +65,7 @@ class ShopWidget extends StatelessWidget {
               }
 
               return ListView.separated(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.fromLTRB(8, 8, 8, 100),
                 itemCount: entries.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (context, index) {
@@ -79,6 +79,9 @@ class ShopWidget extends StatelessWidget {
             },
           ),
         ),
+        SizedBox(
+          height: 32,
+        )
       ],
     );
   }
@@ -95,20 +98,29 @@ class _SingleCard extends StatelessWidget {
     final pending = tcp.isPurchasePending(entry.name, 0);
     final owned = entry.bought;
 
-    return Card(
-      child: ListTile(
-        title: Text(entry.name),
-        subtitle: Text(entry.description),
-        trailing: ElevatedButton(
-          onPressed: (owned || pending || entry.price > tcp.currency)
-              ? null
-              : () => tcp.buyShopEntry(entry),
-          child: Text(
-            owned
-                ? 'Owned'
-                : pending
-                    ? '⏳'
-                    : '${entry.price} 🍌',
+    // entry.descript with a linebreak every 100 characters
+    final tooltipText = entry.description.replaceAllMapped(
+      RegExp(r'.{1,60}'),
+      (match) => '${match.group(0)}\n',
+    );
+
+    return Tooltip(
+      message: tooltipText,
+      child: Card(
+        child: ListTile(
+          title: Text(entry.name),
+          subtitle: Text(entry.description),
+          trailing: ElevatedButton(
+            onPressed: (owned || pending || entry.price > tcp.currency)
+                ? null
+                : () => tcp.buyShopEntry(entry),
+            child: Text(
+              owned
+                  ? 'Owned'
+                  : pending
+                      ? '⏳'
+                      : '${entry.price} 🍌',
+            ),
           ),
         ),
       ),
@@ -140,21 +152,30 @@ class _TieredCard extends StatelessWidget {
       buttonLabel = '${nextTier!.price} 🍌';
     }
 
-    return Card(
-      child: ListTile(
-        title: Text(entry.name),
-        subtitle: Text(
-          maxed
-              ? 'All tiers purchased'
-              : (nextTier!.description.isNotEmpty
-                  ? nextTier.description
-                  : 'Tier ${entry.currentLevel + 1} of ${entry.tiers.length}'),
-        ),
-        trailing: ElevatedButton(
-          onPressed: (maxed || pending || nextTier!.price > tcp.currency)
-              ? null
-              : () => tcp.buyShopEntry(entry),
-          child: Text(buttonLabel),
+    // entry.descript with a linebreak every 100 characters
+    final tooltipText = entry.description.replaceAllMapped(
+      RegExp(r'.{1,60}'),
+      (match) => '${match.group(0)}\n',
+    );
+
+    return Tooltip(
+      message: tooltipText,
+      child: Card(
+        child: ListTile(
+          title: Text(entry.name),
+          subtitle: Text(
+            maxed
+                ? 'All tiers purchased'
+                : (nextTier!.description.isNotEmpty
+                    ? nextTier.description
+                    : 'Tier ${entry.currentLevel + 1} of ${entry.tiers.length}'),
+          ),
+          trailing: ElevatedButton(
+            onPressed: (maxed || pending || nextTier!.price > tcp.currency)
+                ? null
+                : () => tcp.buyShopEntry(entry),
+            child: Text(buttonLabel),
+          ),
         ),
       ),
     );

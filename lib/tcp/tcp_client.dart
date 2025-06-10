@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ffi';
 import 'dart:io';
 import 'dart:convert';
 import 'package:bbc_client/shop_entry.dart';
