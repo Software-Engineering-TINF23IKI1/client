@@ -106,6 +106,7 @@ class _SingleCard extends StatelessWidget {
 
     return Tooltip(
       message: tooltipText,
+      ignorePointer: true,
       child: Card(
         child: ListTile(
           title: Text(entry.name),
@@ -160,6 +161,7 @@ class _TieredCard extends StatelessWidget {
 
     return Tooltip(
       message: tooltipText,
+      ignorePointer: true,
       child: Card(
         child: ListTile(
           title: Text(entry.name),
