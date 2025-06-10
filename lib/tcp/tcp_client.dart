@@ -110,6 +110,18 @@ class TCPClient extends ChangeNotifier {
               Timer.periodic(const Duration(milliseconds: 500), _onSimTick);
         }
         break;
+
+      case EndRoutinePacket():
+        _simTimer?.cancel();
+        _clickBufferTimer?.cancel();
+        _lastServerCurrency = currency;
+        currency = packet.score; // update currency to final score
+        isReady = false; // reset ready status for next game
+        gamecode = "";
+        players.clear();
+        topPlayers.clear();
+        _packetController.add(packet);
+        break;
     }
     notifyListeners();
   }
@@ -135,8 +147,8 @@ class TCPClient extends ChangeNotifier {
             jsonBody['passive-gain'].toDouble(),
             jsonBody['top-players']);
       case "end-routine":
-        return EndRoutinePacket(
-            jsonBody['score'], jsonBody['is-winner'], jsonBody['scoreboard']);
+        return EndRoutinePacket(jsonBody['score'].toDouble(),
+            jsonBody['is-winner'], jsonBody['scoreboard']);
       case "shop-broadcast":
         return ShopBroadcastPacket(jsonBody['shop_entries']);
       case "shop-purchase-confirmation":

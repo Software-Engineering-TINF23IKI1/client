@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:bbc_client/constants.dart';
+import 'package:bbc_client/tcp/packets.dart';
 import 'package:bbc_client/tcp/tcp_client.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bbc_client/screens/gameEnd_screen.dart';
 
 // 1. Define a simple data model for one leaderboard entry.
 //    You can replace this with your real model from AppContext.
@@ -28,7 +29,35 @@ class LeaderboardWidget extends StatefulWidget {
   State<LeaderboardWidget> createState() => _LeaderboardWidgetState();
 }
 
-class _LeaderboardWidgetState extends State<LeaderboardWidget> {
+class _LeaderboardWidgetState extends State<LeaderboardWidget> with RouteAware {
+  late StreamSubscription _packetSubscription;
+  @override
+  void initState() {
+    super.initState();
+    attachPacketListener();
+  }
+
+  void attachPacketListener() {
+    final client = context.read<TCPClient>();
+    _packetSubscription = client.packetStream.listen((packet) {
+      if (packet is EndRoutinePacket) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => EndRoutineScreen(finalScore: packet.score,
+                isWinner:  packet.isWinner, scoreboard: (packet.scoreboard).cast<JsonObject>()),
+          ),
+        );
+        _packetSubscription.cancel();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _packetSubscription.cancel();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
@@ -52,14 +81,6 @@ class GameScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final entries = List.generate(
-      40,
-      (i) => LeaderboardEntry(
-        playerName: 'Player ${i + 1}',
-        score: (10 - i) * 1000,
-      ),
-    );
-
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -123,36 +144,36 @@ class GameScreen extends StatelessWidget {
                       child: FractionallySizedBox(
                         heightFactor: 2 / 3,
                         child: Consumer<TCPClient>(
-                            builder: (BuildContext context, TCPClient tcpClient,
-                                Widget? child) {
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Leaderboard',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                          builder: (BuildContext context, TCPClient tcpClient,
+                              Widget? child) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Leaderboard',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const SizedBox(height: 16),
-                                  // Use the LeaderboardWidget with dummy data
-                                  Expanded(
-                                    child: LeaderboardWidget(
-                                      entries: tcpClient.topPlayers
-                                          .map((player) => LeaderboardEntry(
-                                                playerName:
-                                                    player['playername'] ??
-                                                        'Unknown',
-                                                score: player['score'] ?? 0,
-                                              ))
-                                          .toList(),
-                                    ),
+                                ),
+                                const SizedBox(height: 16),
+                                // Use the LeaderboardWidget with dummy data
+                                Expanded(
+                                  child: LeaderboardWidget(
+                                    entries: tcpClient.topPlayers
+                                        .map((player) => LeaderboardEntry(
+                                              playerName:
+                                                  player['playername'] ??
+                                                      'Unknown',
+                                              score: player['score'] ?? 0,
+                                            ))
+                                        .toList(),
                                   ),
-                                ],
-                              );
-                            },
-                            child: LeaderboardWidget(entries: entries)),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
