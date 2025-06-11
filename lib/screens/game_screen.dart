@@ -210,12 +210,36 @@ class GameScreen extends StatefulWidget with RouteAware {
   State<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends State<GameScreen>
+    with SingleTickerProviderStateMixin {
   late StreamSubscription _packetSubscription;
+
+  late AnimationController _bananaAnimationController;
+  late Animation<double> _bananaAnimation;
+
   @override
   void initState() {
     super.initState();
     attachPacketListener();
+
+    _bananaAnimationController = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 100));
+
+    _bananaAnimation = Tween<double>(begin: 1.0, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _bananaAnimationController,
+        curve: Curves.linear,
+      ),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    precacheImage(AssetImage('assets/game_screen/GameBG.png'), context);
+    precacheImage(AssetImage('assets/game_screen/GameBT.png'), context);
+    precacheImage(AssetImage('assets/game_screen/GameBP.png'), context);
   }
 
   void attachPacketListener() {
@@ -238,6 +262,7 @@ class _GameScreenState extends State<GameScreen> {
   @override
   void dispose() {
     _packetSubscription.cancel();
+    _bananaAnimationController.dispose();
     super.dispose();
   }
 
@@ -272,6 +297,7 @@ class _GameScreenState extends State<GameScreen> {
                       // shrink to fit its children (so the button doesn't get pushed off)
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        const Spacer(),
                         Consumer<TCPClient>(
                           builder: (context, tcpClient, child) {
                             return Text(
@@ -292,19 +318,36 @@ class _GameScreenState extends State<GameScreen> {
                           },
                         ),
                         const SizedBox(height: 40),
-                        ElevatedButton(
-                          onPressed: () {
-                            context.read<TCPClient>().increaseClickBuffer(1);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 40,
-                              vertical: 20,
+                        Expanded(
+                          flex: 5,
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 50),
+                            child: MouseRegion(
+                              cursor: SystemMouseCursors.click,
+                              child: GestureDetector(
+                                onTapDown: (_) {
+                                  if (_bananaAnimationController.isAnimating) {
+                                    _bananaAnimationController.reset();
+                                  }
+                                  _bananaAnimationController
+                                      .forward()
+                                      .then((_) {
+                                    _bananaAnimationController.reset();
+                                  });
+                                  context
+                                      .read<TCPClient>()
+                                      .increaseClickBuffer(1);
+                                },
+                                child: ScaleTransition(
+                                  scale: _bananaAnimation,
+                                  child: Image.asset(
+                                    'assets/game_screen/banana_rotated.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              ),
                             ),
-                            textStyle: const TextStyle(fontSize: 24),
                           ),
-                          child:
-                              const Text('🍌', style: TextStyle(fontSize: 80)),
                         ),
                         const SizedBox(height: 40),
                         Consumer<TCPClient>(
@@ -329,7 +372,8 @@ class _GameScreenState extends State<GameScreen> {
                               ],
                             );
                           },
-                        )
+                        ),
+                        const Spacer(),
                       ],
                     ),
                   ),
