@@ -29,6 +29,7 @@ class TCPClient extends ChangeNotifier {
   List<ShopEntry> get shopEntries => List.unmodifiable(_shopEntries);
   // shop
   final _packetController = StreamController<dynamic>.broadcast();
+  PacketLayout? packet_;
   Stream<dynamic> get packetStream => _packetController.stream;
 
   int _clickBuffer = 0;
@@ -63,27 +64,7 @@ class TCPClient extends ChangeNotifier {
 
     socket?.listen(
       (List<int> data) {
-        for (var packetResponse in utf8.decode(data).split('\x1e')) {
-          final packet = createPacketFromResponse(packetResponse);
-          if (packet != null) {
-            handlePacket(packet);
-            _packetController.add(packet);
-          } else {
-            if (packetStreamQueue.isEmpty) {
-              packetStreamQueue.add(packetResponse);
-            } else {
-              String packetParts = packetStreamQueue.join("") + packetResponse;
-              final packet_ = createPacketFromResponse(packetParts);
-              if (packet_ != null) {
-                handlePacket(packet_);
-                _packetController.add(packet_);
-                packetStreamQueue.clear();
-              } else {
-                packetStreamQueue.add(packetResponse);
-              }
-            }
-          }
-        }
+        parsePacket(data);
         //packet?.printPacket();
       },
       onDone: () {
@@ -95,6 +76,31 @@ class TCPClient extends ChangeNotifier {
     );
   }
 
+  Future<void> parsePacket(List<int> data) async {
+    for (var packetResponse in utf8.decode(data).split('\x1e')) {
+      final packet = createPacketFromResponse(packetResponse);
+      if (packet != null) {
+        handlePacket(packet);
+        packet_ = packet;
+        _packetController.add(packet);
+      } else {
+        if (packetStreamQueue.isEmpty) {
+          packetStreamQueue.add(packetResponse);
+        } else {
+          String packetParts = packetStreamQueue.join("") + packetResponse;
+          packet_ = createPacketFromResponse(packetParts);
+          if (packet_ != null) {
+            handlePacket(packet_);
+            _packetController.add(packet_);
+            packetStreamQueue.clear();
+          } else {
+            packetStreamQueue.add(packetResponse);
+          }
+        }
+      }
+    }
+  }
+
   Future<void> closeConnection() async {
     _clickBufferTimer?.cancel();
     if (socket == null) return;
@@ -103,7 +109,7 @@ class TCPClient extends ChangeNotifier {
     socket = null;
   }
 
-  void handlePacket(PacketLayout packet) {
+  void handlePacket(PacketLayout? packet) {
     switch (packet) {
       case LobbyStatusPacket():
         gamecode = packet.gamecode;
